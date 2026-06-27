@@ -587,8 +587,13 @@ let state = {
   constraintArchive: []
 };
 
-function save() {
+function _save() {
   localStorage.setItem('onemore_state', JSON.stringify(state));
+}
+
+function save() {
+  _save();
+  saveToDrive();
 }
 
 function load() {
@@ -1027,7 +1032,7 @@ async function syncFromDrive() {
         state = { ...state, ...driveData };
         if (!state.constraints) state.constraints = [];
         if (!state.constraintArchive) state.constraintArchive = [];
-        save(); render();
+        _save(); render();
       }
       setSyncStatus('ok', 'synced');
     } else {
@@ -1076,12 +1081,7 @@ async function saveToDrive() {
   }, 1500); // debounce — wait 1.5s after last change before saving
 }
 
-// Hook into save() to also sync to Drive
-const _originalSave = save;
-function save() {
-  _originalSave();
-  saveToDrive();
-}
+// saveToDrive is called from save() above
 
 // ── Keyboard shortcuts ─────────────────────────────────
 document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
