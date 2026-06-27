@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>one more</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E4E2DC;
+    --text: #1A1916;
+    --muted: #9B9890;
+    --accent: #5C4BCC;
+    --accent-light: #EEEDFE;
+    --accent-muted: #A99EE8;
+    --success: #2D9C6B;
+    --radius: 12px;
+    --radius-sm: 8px;
+    /* weight colors */
+    --heavy: #C84B31;
+    --heavy-bg: #FDF0ED;
+    --medium: #B07D2A;
+    --medium-bg: #FDF5E6;
+    --light: #9B9890;
+    --light-bg: #F7F6F3;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  .app { max-width: 440px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { margin-bottom: 2.5rem; }
+  .wordmark { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 300; color: var(--muted); letter-spacing: 0.12em; text-transform: lowercase; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+  .title { font-size: 28px; font-weight: 300; line-height: 1.2; letter-spacing: -0.5px; color: var(--text); }
+  .subtitle { font-size: 13px; color: var(--muted); margin-top: 6px; font-weight: 300; }
+
+  /* BACKUP BUTTONS */
+  .backup-row { display: flex; gap: 6px; }
+  .backup-btn {
+    font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 400;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: none;
+    color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .backup-btn:hover { border-color: var(--accent-muted); color: var(--accent); background: var(--accent-light); }
+
+  /* SYNC */
+  .sync-btn {
+    font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 400;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: none;
+    color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .sync-btn:hover { border-color: var(--accent-muted); color: var(--accent); background: var(--accent-light); }
+  .sync-btn.connected { border-color: var(--success); color: var(--success); }
+  .sync-status {
+    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+    letter-spacing: 0.06em; display: flex; align-items: center; gap: 4px;
+  }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .sync-dot.ok { background: var(--success); }
+  .sync-dot.saving { background: var(--medium); }
+  .sync-dot.error { background: var(--heavy); }
+
+  /* COUNTERS */
+  .counters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 2rem; }
+  .counter { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; }
+  .counter .num { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 400; color: var(--text); line-height: 1; }
+  .counter .lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 400; }
+
+  /* SECTION */
+  .section { margin-bottom: 1.75rem; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 400; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+
+  /* WEIGHT LEGEND */
+  .weight-legend { display: flex; gap: 10px; align-items: center; }
+  .wdot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+  .wdot.heavy { background: var(--heavy); }
+  .wdot.medium { background: var(--medium); }
+  .wdot.light { background: var(--border); }
+  .wleg { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); display: flex; align-items: center; }
+
+  /* TASK LIST */
+  .task-list { display: flex; flex-direction: column; gap: 5px; }
+  .task-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s, opacity 0.2s;
+    user-select: none;
+    position: relative;
+  }
+  .task-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  }
+  .task-item.weight-heavy::before { background: var(--heavy); }
+  .task-item.weight-medium::before { background: var(--medium); }
+  .task-item.weight-light::before { background: transparent; }
+  .task-item:hover { border-color: var(--accent-muted); }
+  .task-item.done { opacity: 0.38; cursor: default; }
+  .task-item.done:hover { border-color: var(--border); }
+  .task-item.done .task-name { text-decoration: line-through; }
+
+  .circle {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .task-item.done .circle { background: var(--success); border-color: var(--success); }
+  .check-icon { display: none; width: 10px; height: 10px; }
+  .task-item.done .check-icon { display: block; }
+
+  .task-name { font-size: 14px; font-weight: 400; color: var(--text); flex: 1; }
+  .task-weight-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    padding: 2px 7px; border-radius: 99px; flex-shrink: 0;
+  }
+  .task-weight-label.heavy { background: var(--heavy-bg); color: var(--heavy); }
+  .task-weight-label.medium { background: var(--medium-bg); color: var(--medium); }
+  .task-weight-label.light { display: none; }
+
+  .remove-btn {
+    width: 22px; height: 22px; border-radius: 50%; border: none; background: none;
+    color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .task-item:hover .remove-btn { opacity: 1; }
+  .task-item.done .remove-btn { display: none; }
+
+  /* ADD ROW */
+  .add-row { display: flex; gap: 6px; margin-top: 8px; }
+  .add-row input {
+    flex: 1; height: 38px; padding: 0 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); outline: none;
+    transition: border-color 0.15s;
+  }
+  .add-row input:focus { border-color: var(--accent); }
+  .add-row input::placeholder { color: var(--muted); }
+
+  .weight-select {
+    height: 38px; padding: 0 8px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); outline: none;
+    cursor: pointer; transition: border-color 0.15s;
+    -webkit-appearance: none; appearance: none;
+    min-width: 72px; text-align: center;
+  }
+  .weight-select:focus { border-color: var(--accent); }
+
+  .add-row button {
+    height: 38px; padding: 0 16px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius-sm); cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .add-row button:hover { opacity: 0.88; }
+
+  /* REWARDS */
+  .reward-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--accent-light); border-radius: 999px;
+    padding: 5px 12px; font-size: 13px; color: var(--accent);
+  }
+  .pill button {
+    background: none; border: none; color: var(--accent-muted);
+    font-size: 15px; line-height: 1; cursor: pointer; padding: 0;
+  }
+  .pill button:hover { color: var(--accent); }
+
+  .drag-handle {
+    display: flex; flex-direction: column; gap: 3px;
+    padding: 2px 2px; cursor: grab; flex-shrink: 0; opacity: 0.3;
+    transition: opacity 0.15s;
+  }
+  .task-item:hover .drag-handle { opacity: 0.7; }
+  .drag-handle span { display: block; width: 14px; height: 1.5px; background: var(--text); border-radius: 2px; }
+  .task-item.done .drag-handle { display: none; }
+  .task-item.dragging { opacity: 0.4; border: 1px dashed var(--accent-muted); }
+  .task-item.drag-over { border-color: var(--accent); }
+
+  /* OVERLAY */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26, 25, 22, 0.6);
+    align-items: center; justify-content: center;
+    z-index: 100; padding: 1.5rem;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.show { display: flex; }
+
+  .reveal-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    max-width: 320px; width: 100%;
+    border: 1px solid var(--border);
+    animation: pop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes pop {
+    from { transform: scale(0.88); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .reward-emoji { font-size: 40px; margin-bottom: 1rem; }
+  .reward-eyebrow {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--muted); margin-bottom: 10px;
+  }
+  .reward-name { font-size: 22px; font-weight: 400; color: var(--text); letter-spacing: -0.3px; margin-bottom: 2rem; }
+  .dismiss-btn {
+    padding: 10px 28px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: transparent;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    color: var(--text); cursor: pointer; transition: background 0.15s;
+  }
+  .dismiss-btn:hover { background: var(--bg); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.75rem 0; }
+
+  .clear-btn {
+    background: none; border: none; font-family: 'DM Mono', monospace;
+    font-size: 10px; color: var(--muted); cursor: pointer; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 0; text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .clear-btn:hover { color: var(--text); }
+
+  .reset-row { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: center; }
+  .reset-btn {
+    background: none; border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--muted); cursor: pointer; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 8px 20px; border-radius: var(--radius-sm);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .reset-btn:hover { border-color: #E05C5C; color: #E05C5C; }
+
+  /* CONFIRM OVERLAY */
+  .confirm-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,25,22,0.6);
+    align-items: center; justify-content: center;
+    z-index: 200; padding: 1.5rem;
+    backdrop-filter: blur(4px);
+  }
+  .confirm-overlay.show { display: flex; }
+  .confirm-card {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 2rem; text-align: center; max-width: 280px; width: 100%;
+    border: 1px solid var(--border);
+    animation: pop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .confirm-card p { font-size: 15px; color: var(--text); margin-bottom: 6px; }
+  .confirm-card small { font-size: 12px; color: var(--muted); }
+  .confirm-actions { display: flex; gap: 8px; margin-top: 1.5rem; }
+  .confirm-actions button { flex: 1; height: 38px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
+  .btn-cancel { background: none; border: 1px solid var(--border); color: var(--text); }
+  .btn-cancel:hover { background: var(--bg); }
+  .btn-confirm { background: #E05C5C; border: none; color: #fff; }
+  .btn-confirm:hover { opacity: 0.88; }
+
+  .rw-btn-row { display: flex; gap: 6px; margin-top: 8px; }
+  .rw-btn-row button {
+    flex: 1; height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; font-weight: 400;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transition: all .15s;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: #fff;
+    padding: 9px 18px; border-radius: 99px;
+    font-size: 12px; font-family: 'DM Mono', monospace;
+    z-index: 300; transition: transform 0.3s;
+    white-space: nowrap; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* TABS */
+  .tab-nav { display: flex; gap: 4px; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 14px 10px; border: none; background: none;
+    color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* CONSTRAINTS */
+  .constraint-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .constraint-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px; position: relative;
+  }
+  .constraint-item::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    background: var(--accent);
+  }
+  .constraint-item.expired::before { background: var(--muted); }
+  .constraint-item.expired { opacity: 0.5; }
+  .constraint-row { display: flex; align-items: center; gap: 10px; }
+  .constraint-text { font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; }
+  .constraint-expiry { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .constraint-expiry.soon { color: var(--medium); }
+  .constraint-expiry.expired-label { color: var(--muted); text-decoration: line-through; }
+  .constraint-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .c-btn {
+    width: 24px; height: 24px; border-radius: 50%; border: none; background: none;
+    color: var(--muted); font-size: 14px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, background 0.15s;
+  }
+  .c-btn:hover { color: var(--text); background: var(--bg); }
+  .constraint-cap {
+    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+    text-align: center; padding: 8px; letter-spacing: 0.08em;
+  }
+  .constraint-add-area { margin-top: 4px; }
+  .constraint-input-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  .constraint-input-row input {
+    flex: 1; height: 38px; padding: 0 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); outline: none;
+    transition: border-color 0.15s;
+  }
+  .constraint-input-row input:focus { border-color: var(--accent); }
+  .constraint-input-row input::placeholder { color: var(--muted); }
+  .constraint-input-row button {
+    height: 38px; padding: 0 16px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius-sm); cursor: pointer; transition: opacity 0.15s;
+  }
+  .constraint-input-row button:hover { opacity: 0.88; }
+  .constraint-expiry-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .constraint-expiry-row label {
+    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+    letter-spacing: 0.08em; text-transform: uppercase; flex-shrink: 0;
+  }
+  .constraint-expiry-row input[type="date"] {
+    height: 32px; padding: 0 10px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); outline: none; cursor: pointer;
+  }
+  .constraint-expiry-row input[type="date"]:focus { border-color: var(--accent); }
+  .expiry-hint { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+  .constraint-edit-input {
+    flex: 1; font-family: 'DM Sans', sans-serif; font-size: 14px;
+    padding: 4px 8px; border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none;
+  }
+  .constraint-edit-date {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    padding: 3px 8px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; cursor: pointer;
+  }
+  .archive-toggle {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none; cursor: pointer;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0; margin-top: 1.5rem; transition: color 0.15s;
+  }
+  .archive-toggle:hover { color: var(--text); }
+  .archive-toggle .chevron { transition: transform 0.2s; font-style: normal; }
+  .archive-toggle.open .chevron { transform: rotate(90deg); }
+  .archive-section { margin-top: 10px; display: none; }
+  .archive-section.open { display: block; }
+  .archive-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 9px 12px; border-bottom: 1px solid var(--border); gap: 10px;
+  }
+  .archive-item:last-child { border-bottom: none; }
+  .archive-item-text { font-size: 13px; color: var(--muted); flex: 1; }
+  .archive-item-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); flex-shrink: 0; text-align: right; line-height: 1.6; }
+  .archive-empty { font-size: 13px; color: var(--muted); padding: 12px 0; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- confirm reset overlay -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-card">
+      <p>Start fresh?</p>
+      <small>This clears all tasks, rewards, and counters.</small>
+      <div class="confirm-actions">
+        <button class="btn-cancel" onclick="closeConfirm()">cancel</button>
+        <button class="btn-confirm" onclick="confirmReset()">reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- reward overlay -->
+  <div class="overlay" id="overlay">
+    <div class="reveal-card">
+      <div class="reward-emoji">🎁</div>
+      <div class="reward-eyebrow">you earned it</div>
+      <div class="reward-name" id="reveal-text"></div>
+      <button class="dismiss-btn" onclick="closeReveal()">got it</button>
+    </div>
+  </div>
+
+  <!-- header -->
+  <div class="header">
+    <div class="wordmark">
+      one more
+      <div class="backup-row">
+        <div class="sync-status" id="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">not connected</span></div>
+        <button class="sync-btn" id="sync-btn" onclick="toggleDriveAuth()">⟳ drive</button>
+        <button class="backup-btn" onclick="importData()" title="Restore from backup">⬆ import</button>
+        <button class="backup-btn" onclick="exportData()" title="Save backup">⬇ export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- tab nav -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('tasks')">tasks</button>
+    <button class="tab-btn" onclick="switchTab('constraints')">constraints</button>
+  </div>
+
+  <!-- TASKS TAB -->
+  <div class="tab-panel active" id="tab-tasks">
+
+  <!-- counters -->
+  <div class="counters">
+    <div class="counter"><div class="num" id="cnt-done">0</div><div class="lbl">done today</div></div>
+    <div class="counter"><div class="num" id="cnt-total">0</div><div class="lbl">total tasks</div></div>
+    <div class="counter"><div class="num" id="cnt-rewards">0</div><div class="lbl">rewards</div></div>
+  </div>
+
+  <!-- tasks -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">tasks</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="weight-legend">
+          <span class="wleg"><span class="wdot heavy"></span>heavy</span>
+          <span class="wleg"><span class="wdot medium"></span>medium</span>
+          <span class="wleg"><span class="wdot light"></span>light</span>
+        </div>
+        <button class="clear-btn" onclick="clearDone()">clear done</button>
+      </div>
+    </div>
+    <div class="task-list" id="task-list"></div>
+    <div class="add-row" style="margin-top:8px">
+      <input type="text" id="task-input" placeholder="add a task…" />
+      <select class="weight-select" id="weight-select">
+        <option value="light">light</option>
+        <option value="medium">medium</option>
+        <option value="heavy" selected>heavy</option>
+      </select>
+      <button onclick="addTask()">add</button>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- rewards -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">rewards pool</span>
+    </div>
+    <div class="reward-pills" id="reward-list"></div>
+    <div class="add-row">
+      <input type="text" id="reward-input" placeholder="add a reward…" />
+      <button onclick="addReward()">add</button>
+    </div>
+  </div>
+
+  <div class="reset-row">
+    <button class="reset-btn" onclick="openConfirm()">start fresh</button>
+  </div>
+
+  </div><!-- /tab-tasks -->
+
+  <!-- CONSTRAINTS TAB -->
+  <div class="tab-panel" id="tab-constraints">
+    <div class="section">
+      <div class="section-head">
+        <span class="section-label">this week's rules</span>
+        <span class="section-label" id="constraint-count-label" style="color:var(--accent)"></span>
+      </div>
+      <div class="constraint-list" id="constraint-list"></div>
+      <div class="constraint-add-area" id="constraint-add-area">
+        <div class="constraint-input-row">
+          <input type="text" id="constraint-input" placeholder="add a constraint…" />
+          <button onclick="addConstraint()">add</button>
+        </div>
+        <div class="constraint-expiry-row">
+          <label>expires</label>
+          <input type="date" id="constraint-expiry-input" />
+          <span class="expiry-hint">optional</span>
+        </div>
+      </div>
+    </div>
+    <button class="archive-toggle" id="archive-toggle" onclick="toggleArchive()">
+      <em class="chevron">›</em> archive
+    </button>
+    <div class="archive-section" id="archive-section">
+      <div id="archive-list"></div>
+    </div>
+  </div><!-- /tab-constraints -->
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Weight reward probabilities ────────────────────────
+const DROUGHT_THRESHOLD = 7;
+const DROUGHT_BOOST = 0.3 + Math.random() * 0.2;
+
+function getProb(weight) {
+  // base ranges shuffle on every session so no fixed pattern exists
+  const seed = (Date.now() % 1000) / 1000;
+  const ranges = {
+    heavy:  [0.42 + seed * 0.08,  0.68 + seed * 0.06],
+    medium: [0.18 + seed * 0.06,  0.34 + seed * 0.08],
+    light:  [0.02 + seed * 0.03,  0.09 + seed * 0.04]
+  };
+  const [lo, hi] = ranges[weight] || ranges.light;
+  return lo + Math.random() * (hi - lo);
+}
+
+let state = {
+  tasks: [],
+  rewards: [],
+  rewardMap: {},
+  doneToday: 0,
+  rewardsEarned: 0,
+  tasksSinceLast: 0,
+  lastReset: new Date().toDateString(),
+  constraints: [],
+  constraintArchive: []
+};
+
+function save() {
+  localStorage.setItem('onemore_state', JSON.stringify(state));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('onemore_state');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      state = { ...state, ...saved };
+      if (!state.constraints) state.constraints = [];
+      if (!state.constraintArchive) state.constraintArchive = [];
+      if (state.lastReset !== new Date().toDateString()) {
+        state.doneToday = 0;
+        state.lastReset = new Date().toDateString();
+      }
+    }
+  } catch(e) {}
+}
+
+// ── Reward logic ───────────────────────────────────────
+function roll(weight) {
+  const base = getProb(weight);
+  const boost = state.tasksSinceLast >= DROUGHT_THRESHOLD ? DROUGHT_BOOST : 0;
+  return Math.random() < (base + boost);
+}
+
+function assignRewardToTask(taskId, weight) {
+  if (state.rewards.length === 0) return false;
+  if (!roll(weight)) return false;
+  // match reward tier to task weight — heavy task gets heavy reward
+  const matching = state.rewards.filter(r => r.weight === weight);
+  const fallback = state.rewards; // use any reward if no matching tier exists yet
+  const pool = matching.length > 0 ? matching : fallback;
+  const r = pool[Math.floor(Math.random() * pool.length)];
+  state.rewardMap[taskId] = r.text || r; // handle old string format
+  return true;
+}
+
+// ── Actions ────────────────────────────────────────────
+function addTask() {
+  const input = document.getElementById('task-input');
+  const weightEl = document.getElementById('weight-select');
+  const val = input.value.trim();
+  if (!val) return;
+  const id = Date.now() + Math.random();
+  const weight = weightEl.value;
+  state.tasks.push({ id, name: val, done: false, weight });
+  const rewarded = assignRewardToTask(id, weight);
+  if (rewarded) state.tasksSinceLast = 0;
+  input.value = '';
+  save(); render();
+}
+
+function completeTask(id) {
+  const task = state.tasks.find(t => t.id === id);
+  if (!task || task.done) return;
+  task.done = true;
+  state.doneToday++;
+  state.tasksSinceLast++;
+
+  const reward = state.rewardMap[id];
+  if (reward) {
+    state.rewardsEarned++;
+    state.tasksSinceLast = 0;
+    save(); render();
+    setTimeout(() => showReveal(reward), 180);
+  } else {
+    save(); render();
+  }
+}
+
+function removeTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  delete state.rewardMap[id];
+  save(); render();
+}
+
+function clearDone() {
+  const doneIds = state.tasks.filter(t => t.done).map(t => t.id);
+  doneIds.forEach(id => delete state.rewardMap[id]);
+  state.tasks = state.tasks.filter(t => !t.done);
+  save(); render();
+}
+
+function addReward() {
+  const input = document.getElementById('reward-input');
+  const val = input.value.trim();
+  if (!val) return;
+  state.rewards.push({ text: val, weight: 'heavy' });
+  input.value = '';
+  save(); render();
+}
+
+function removeReward(idx) {
+  state.rewards.splice(idx, 1);
+  save(); render();
+}
+
+// ── Reset ──────────────────────────────────────────────
+function openConfirm() { document.getElementById('confirm-overlay').classList.add('show'); }
+function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('show'); }
+function confirmReset() {
+  state = { tasks:[], rewards:[], rewardMap:{}, doneToday:0, rewardsEarned:0, tasksSinceLast:0, lastReset:new Date().toDateString(), constraints: state.constraints||[], constraintArchive: state.constraintArchive||[] };
+  save(); render(); closeConfirm();
+}
+
+// ── Reveal ─────────────────────────────────────────────
+function showReveal(reward) {
+  document.getElementById('reveal-text').textContent = reward;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeReveal() { document.getElementById('overlay').classList.remove('show'); }
+
+// ── Export / Import ────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  a.download = `onemore-backup-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✓ backup saved');
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.tasks || !data.rewards) { showToast('⚠ invalid backup file'); return; }
+        state = data;
+        save(); render();
+        showToast('✓ data restored');
+      } catch(err) { showToast('⚠ could not read file'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ── Drag & Drop ────────────────────────────────────────
+let dragId = null;
+
+function dragStart(e, id) { dragId = id; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function dragDrop(e, targetId) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if (dragId === targetId) return;
+  const fromIdx = state.tasks.findIndex(t => t.id === dragId);
+  const toIdx = state.tasks.findIndex(t => t.id === targetId);
+  if (fromIdx === -1 || toIdx === -1) return;
+  const [moved] = state.tasks.splice(fromIdx, 1);
+  state.tasks.splice(toIdx, 0, moved);
+  save(); render();
+}
+function dragEnd(e) { e.currentTarget.classList.remove('dragging'); dragId = null; }
+
+// ── Toast ──────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Render ─────────────────────────────────────────────
+function render() {
+  document.getElementById('cnt-done').textContent = state.doneToday;
+  document.getElementById('cnt-total').textContent = state.tasks.length;
+  document.getElementById('cnt-rewards').textContent = state.rewardsEarned;
+
+  const list = document.getElementById('task-list');
+  if (state.tasks.length === 0) {
+    list.innerHTML = '<div class="empty">no tasks yet — add one below</div>';
+  } else {
+    list.innerHTML = state.tasks.map(t => {
+      const w = t.weight || 'light';
+      return `
+      <div class="task-item ${t.done ? 'done' : ''} weight-${w}"
+        draggable="${t.done ? 'false' : 'true'}"
+        data-id="${t.id}"
+        onclick="${t.done ? '' : `completeTask(${t.id})`}"
+        ondragstart="dragStart(event, ${t.id})"
+        ondragover="dragOver(event)"
+        ondragleave="dragLeave(event)"
+        ondrop="dragDrop(event, ${t.id})"
+        ondragend="dragEnd(event)">
+        <div class="drag-handle" onclick="event.stopPropagation()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="circle">
+          <svg class="check-icon" viewBox="0 0 10 10" fill="none">
+            <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="task-name">${escHtml(t.name)}</span>
+        <span class="task-weight-label ${w}">${w}</span>
+        <button class="remove-btn" onclick="event.stopPropagation(); removeTask(${t.id})" aria-label="remove">×</button>
+      </div>`;
+    }).join('');
+  }
+
+  // reward pills
+  const rlist = document.getElementById('reward-list');
+  if (state.rewards.length === 0) {
+    rlist.innerHTML = '<div class="empty">no rewards yet — add what motivates you</div>';
+  } else {
+    rlist.innerHTML = state.rewards.map((r, i) => {
+      const text = r.text || r;
+      return `<div class="pill">${escHtml(text)}<button onclick="removeReward(${i})" aria-label="remove reward">×</button></div>`;
+    }).join('');
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Tabs ───────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'constraints') renderConstraints();
+}
+
+// ── Constraints ────────────────────────────────────────
+const CONSTRAINT_MAX = 3;
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function isExpired(c) { return c.expiry && c.expiry < todayStr(); }
+
+function fmtDate(ymd) {
+  const [y, m, d] = ymd.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m)-1]} ${parseInt(d)}`;
+}
+
+function expiryLabel(c) {
+  if (!c.expiry) return null;
+  const today = todayStr();
+  if (c.expiry < today) return { text: 'expired ' + fmtDate(c.expiry), cls: 'expired-label' };
+  const diff = Math.round((new Date(c.expiry) - new Date(today)) / 86400000);
+  if (diff === 0) return { text: 'expires today', cls: 'soon' };
+  if (diff === 1) return { text: 'expires tomorrow', cls: 'soon' };
+  if (diff <= 3) return { text: `expires in ${diff} days`, cls: 'soon' };
+  return { text: 'until ' + fmtDate(c.expiry), cls: '' };
+}
+
+function addConstraint() {
+  const input = document.getElementById('constraint-input');
+  const expiryInput = document.getElementById('constraint-expiry-input');
+  const val = input.value.trim();
+  if (!val) return;
+  const active = state.constraints.filter(c => !isExpired(c));
+  if (active.length >= CONSTRAINT_MAX) { showToast('max 3 active constraints'); return; }
+  state.constraints.push({ id: String(Date.now()), text: val, expiry: expiryInput.value || null, addedOn: todayStr() });
+  input.value = ''; expiryInput.value = '';
+  save(); renderConstraints();
+}
+
+function retireConstraint(id) {
+  const idx = state.constraints.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  const c = state.constraints[idx];
+  state.constraintArchive.unshift({ text: c.text, expiry: c.expiry, addedOn: c.addedOn, retiredOn: todayStr() });
+  if (state.constraintArchive.length > 30) state.constraintArchive = state.constraintArchive.slice(0, 30);
+  state.constraints.splice(idx, 1);
+  save(); renderConstraints();
+  showToast('constraint archived');
+}
+
+let editingConstraintId = null;
+
+function startEditConstraint(id) { editingConstraintId = id; renderConstraints(); }
+
+function saveEditConstraint(id) {
+  const c = state.constraints.find(c => c.id === id);
+  if (!c) return;
+  const textEl = document.getElementById('cedit-text-' + id);
+  const dateEl = document.getElementById('cedit-date-' + id);
+  if (textEl && textEl.value.trim()) c.text = textEl.value.trim();
+  c.expiry = dateEl && dateEl.value ? dateEl.value : null;
+  editingConstraintId = null;
+  save(); renderConstraints();
+}
+
+function cancelEditConstraint() { editingConstraintId = null; renderConstraints(); }
+
+function toggleArchive() {
+  document.getElementById('archive-toggle').classList.toggle('open');
+  document.getElementById('archive-section').classList.toggle('open');
+}
+
+function renderConstraints() {
+  const list = document.getElementById('constraint-list');
+  const addArea = document.getElementById('constraint-add-area');
+  const countLabel = document.getElementById('constraint-count-label');
+  const active = state.constraints.filter(c => !isExpired(c));
+  countLabel.textContent = `${active.length} / ${CONSTRAINT_MAX}`;
+
+  if (state.constraints.length === 0) {
+    list.innerHTML = '<div class="empty" style="font-size:13px;color:var(--muted);padding:8px 0;">no active constraints — add one below</div>';
+  } else {
+    list.innerHTML = state.constraints.map(c => {
+      const exp = isExpired(c);
+      const lbl = expiryLabel(c);
+      if (editingConstraintId === c.id) {
+        return `<div class="constraint-item">
+          <div class="constraint-row">
+            <input class="constraint-edit-input" id="cedit-text-${c.id}" value="${escHtml(c.text)}" />
+            <div class="constraint-actions">
+              <button class="c-btn" onclick="saveEditConstraint('${c.id}')">✓</button>
+              <button class="c-btn" onclick="cancelEditConstraint()">✕</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">expires</span>
+            <input type="date" class="constraint-edit-date" id="cedit-date-${c.id}" value="${c.expiry || ''}" />
+          </div>
+        </div>`;
+      }
+      return `<div class="constraint-item ${exp ? 'expired' : ''}">
+        <div class="constraint-row">
+          <span class="constraint-text">${escHtml(c.text)}</span>
+          <div class="constraint-actions">
+            <button class="c-btn" onclick="startEditConstraint('${c.id}')">✎</button>
+            <button class="c-btn" onclick="retireConstraint('${c.id}')">↓</button>
+          </div>
+        </div>
+        ${lbl ? `<div class="constraint-expiry ${lbl.cls}">${lbl.text}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // cap message
+  const existing = document.querySelector('.constraint-cap');
+  if (existing) existing.remove();
+  if (active.length >= CONSTRAINT_MAX) {
+    addArea.style.display = 'none';
+    const msg = document.createElement('div');
+    msg.className = 'constraint-cap';
+    msg.textContent = 'cap reached — retire one to add another';
+    list.insertAdjacentElement('afterend', msg);
+  } else {
+    addArea.style.display = 'block';
+  }
+
+  // archive
+  const archiveList = document.getElementById('archive-list');
+  archiveList.innerHTML = state.constraintArchive.length === 0
+    ? '<div class="archive-empty">nothing archived yet</div>'
+    : state.constraintArchive.map(c => `
+      <div class="archive-item">
+        <span class="archive-item-text">${escHtml(c.text)}</span>
+        <span class="archive-item-meta">${c.retiredOn ? fmtDate(c.retiredOn) : ''}${c.expiry ? '<br>until ' + fmtDate(c.expiry) : ''}</span>
+      </div>`).join('');
+}
+
+// ── Google Drive Sync ──────────────────────────────────
+const CLIENT_ID = '39196568910-li5jfmpbkc6rpekb58kf9pk4icighsa0.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+const FILE_NAME = 'onemore-data.json';
+
+let driveToken = null;
+let driveFileId = null;
+let syncTimeout = null;
+
+function setSyncStatus(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  const btn = document.getElementById('sync-btn');
+  dot.className = 'sync-dot ' + (state || '');
+  lbl.textContent = label;
+  if (state === 'ok') btn.classList.add('connected');
+  else btn.classList.remove('connected');
+}
+
+function toggleDriveAuth() {
+  if (driveToken) {
+    driveToken = null;
+    driveFileId = null;
+    localStorage.removeItem('onemore_drive_token');
+    setSyncStatus('', 'not connected');
+    showToast('disconnected from drive');
+  } else {
+    initDriveAuth();
+  }
+}
+
+function initDriveAuth() {
+  setSyncStatus('saving', 'connecting…');
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { setSyncStatus('error', 'auth failed'); return; }
+      driveToken = resp.access_token;
+      localStorage.setItem('onemore_drive_token', driveToken);
+      setSyncStatus('saving', 'syncing…');
+      await syncFromDrive();
+    }
+  });
+  client.requestAccessToken();
+}
+
+async function syncFromDrive() {
+  try {
+    // find existing file
+    const search = await fetch(
+      `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'&fields=files(id,name)`,
+      { headers: { Authorization: `Bearer ${driveToken}` } }
+    );
+    const result = await search.json();
+    if (result.files && result.files.length > 0) {
+      driveFileId = result.files[0].id;
+      // load data from Drive
+      const fileResp = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
+        { headers: { Authorization: `Bearer ${driveToken}` } }
+      );
+      const driveData = await fileResp.json();
+      if (driveData && driveData.tasks) {
+        state = { ...state, ...driveData };
+        if (!state.constraints) state.constraints = [];
+        if (!state.constraintArchive) state.constraintArchive = [];
+        save(); render();
+      }
+      setSyncStatus('ok', 'synced');
+    } else {
+      // no file yet — create one
+      setSyncStatus('saving', 'saving…');
+      await saveToDrive();
+    }
+  } catch(e) {
+    setSyncStatus('error', 'sync failed');
+  }
+}
+
+async function saveToDrive() {
+  if (!driveToken) return;
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    setSyncStatus('saving', 'saving…');
+    try {
+      const body = JSON.stringify(state);
+      if (driveFileId) {
+        // update existing
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+          body
+        });
+      } else {
+        // create new
+        const meta = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] })
+        });
+        const metaResult = await meta.json();
+        driveFileId = metaResult.id;
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+          body
+        });
+      }
+      setSyncStatus('ok', 'saved');
+    } catch(e) {
+      setSyncStatus('error', 'save failed');
+    }
+  }, 1500); // debounce — wait 1.5s after last change before saving
+}
+
+// Hook into save() to also sync to Drive
+const _originalSave = save;
+function save() {
+  _originalSave();
+  saveToDrive();
+}
+
+// ── Keyboard shortcuts ─────────────────────────────────
+document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+document.getElementById('reward-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReward(); });
+document.getElementById('constraint-input').addEventListener('keydown', e => { if (e.key === 'Enter') addConstraint(); });
+
+// ── Boot ───────────────────────────────────────────────
+load();
+render();
+// no button pre-selected — user must actively choose tier each time
+currentRewardWeight = null;
+['light','medium','heavy'].forEach(wt => {
+  const btn = document.getElementById('rwbtn-'+wt);
+  if (btn) btn.style.cssText = `flex:1;height:32px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:none;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);cursor:pointer;letter-spacing:.08em;text-transform:uppercase;font-weight:400;`;
+});
+</script>
+</body>
+</html>
