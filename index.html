@@ -396,7 +396,13 @@
   }
   .clarity-col-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
   .clarity-col-label.within { color: var(--accent); }
-  .clarity-col-label.outside { color: #4A7C59; }
+  .clarity-col-label.planb { color: #B45309; }
+  .clarity-planb-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .clarity-planb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .clarity-col.planb .clarity-item { background: #FFFBEB; border-color: #FDE68A; }
+  .clarity-col.planb .clarity-item-text { color: #92400E; }
+  #clarity-planb-list .clarity-item { background: #FFFBEB; border-color: #FDE68A; }
+  #clarity-planb-list .clarity-item-text { color: #92400E; }
   .clarity-list .empty { font-size: 13px; color: var(--muted); font-weight: 300; padding: 4px 0 12px; }
   .clarity-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 7px; background: var(--accent-light); border-color: var(--accent-muted); }
   .clarity-col.outside .clarity-item { background: #F4FAF6; border-color: #C8DFD0; }
@@ -567,7 +573,7 @@
 
   <!-- CLARITY TAB -->
   <div class="tab-panel active" id="tab-clarity">
-    <div class="clarity-intro">Act on what you can control. Let go of what you can't.</div>
+    <div class="clarity-intro">Act on what you can control. Let go of what you can't. Plan for what might not go your way.</div>
     <div class="clarity-grid">
       <div class="clarity-col">
         <div class="clarity-col-label within">within my control</div>
@@ -592,6 +598,17 @@
     </button>
     <div class="archive-section" id="clarity-archive-section" style="display:none">
       <div id="clarity-archive-list"></div>
+    </div>
+    <div class="clarity-planb-section">
+      <div class="clarity-planb-header">
+        <div class="clarity-col-label planb">plan b</div>
+        <div style="font-size:11px;color:var(--muted);font-weight:300">if the outcome isn't what you hoped</div>
+      </div>
+      <div class="add-row" style="margin-top:0;margin-bottom:10px">
+        <input type="text" id="clarity-planb-input" placeholder="" />
+        <button onclick="addClarity('planb')">add</button>
+      </div>
+      <div class="clarity-list" id="clarity-planb-list"></div>
     </div>
   </div>
 
@@ -731,7 +748,8 @@ let state = {
   constraintArchive: [],
   clarityWithin: [],
   clarityOutside: [],
-  clarityOutsideArchive: []
+  clarityOutsideArchive: [],
+  clarityPlanb: []
 };
 
 function _save() {
@@ -754,6 +772,7 @@ function load() {
       if (!state.clarityWithin) state.clarityWithin = [];
       if (!state.clarityOutside) state.clarityOutside = [];
       if (!state.clarityOutsideArchive) state.clarityOutsideArchive = [];
+      if (!state.clarityPlanb) state.clarityPlanb = [];
       const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
       const now = Date.now();
       state.clarityOutside = state.clarityOutside.filter(c => (now - c.createdAt) < sevenDaysMs);
@@ -792,14 +811,16 @@ function addClarity(kind) {
   if (!val) return;
   const item = { id: String(Date.now()) + String(Math.random()).slice(2,7), text: val, createdAt: Date.now() };
   if (kind === 'within') state.clarityWithin.push(item);
-  else state.clarityOutside.push(item);
+  else if (kind === 'outside') state.clarityOutside.push(item);
+  else if (kind === 'planb') state.clarityPlanb.push(item);
   input.value = '';
   save(); renderClarity();
 }
 
 function removeClarity(kind, id) {
   if (kind === 'within') state.clarityWithin = state.clarityWithin.filter(c => String(c.id) !== String(id));
-  else state.clarityOutside = state.clarityOutside.filter(c => String(c.id) !== String(id));
+  else if (kind === 'outside') state.clarityOutside = state.clarityOutside.filter(c => String(c.id) !== String(id));
+  else if (kind === 'planb') state.clarityPlanb = state.clarityPlanb.filter(c => String(c.id) !== String(id));
   save(); renderClarity();
 }
 
@@ -885,6 +906,21 @@ function renderClarity() {
           <button class="clarity-remove-btn" onclick="removeClarity('outside', '${c.id}')" aria-label="let go now">×</button>
         </div>
       </div>`).join('');
+  }
+  // plan b
+  const pbList = document.getElementById('clarity-planb-list');
+  if (pbList) {
+    if (!state.clarityPlanb || state.clarityPlanb.length === 0) {
+      pbList.innerHTML = '<div class="empty">nothing here right now</div>';
+    } else {
+      pbList.innerHTML = state.clarityPlanb.map(c => `
+        <div class="clarity-item">
+          <div class="clarity-item-text">${escHtml(c.text)}</div>
+          <div class="clarity-item-acts">
+            <button class="clarity-remove-btn" onclick="removeClarity('planb', '${c.id}')" aria-label="remove">×</button>
+          </div>
+        </div>`).join('');
+    }
   }
   // archive
   const toggle = document.getElementById('clarity-archive-toggle');
@@ -1473,7 +1509,7 @@ function toggleDriveAuth() {
   if (driveToken) {
     driveToken = null;
     driveFileId = null;
-    localStorage.removeItem('onemore_drive_token');
+    sessionStorage.removeItem('onemore_drive_token');
     setSyncStatus('', 'not connected');
     showToast('disconnected from drive');
   } else {
@@ -1489,7 +1525,7 @@ function initDriveAuth() {
     callback: async (resp) => {
       if (resp.error) { setSyncStatus('error', 'auth failed'); return; }
       driveToken = resp.access_token;
-      localStorage.setItem('onemore_drive_token', driveToken);
+      sessionStorage.setItem('onemore_drive_token', driveToken);
       setSyncStatus('saving', 'syncing…');
       await syncFromDrive();
     }
@@ -1587,7 +1623,7 @@ function startSignIn() {
         return;
       }
       driveToken = resp.access_token;
-      localStorage.setItem('onemore_drive_token', driveToken);
+      sessionStorage.setItem('onemore_drive_token', driveToken);
       await syncFromDrive();
       document.getElementById('signinGate').classList.add('hidden');
       document.getElementById('mainApp').style.display = '';
@@ -1601,7 +1637,7 @@ function startSignIn() {
 function signOut() {
   if (driveToken) google.accounts.oauth2.revoke(driveToken, () => {});
   driveToken = null; driveFileId = null;
-  localStorage.removeItem('onemore_drive_token');
+  sessionStorage.removeItem('onemore_drive_token');
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('signinGate').classList.remove('hidden');
 }
@@ -1612,11 +1648,12 @@ document.getElementById('reward-input').addEventListener('keydown', e => { if (e
 document.getElementById('constraint-input').addEventListener('keydown', e => { if (e.key === 'Enter') addConstraint(); });
 document.getElementById('clarity-within-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarity('within'); });
 document.getElementById('clarity-outside-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarity('outside'); });
+document.getElementById('clarity-planb-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarity('planb'); });
 
 // ── Boot ───────────────────────────────────────────────
 load();
 // Try silent token restore
-const savedToken = localStorage.getItem('onemore_drive_token');
+const savedToken = sessionStorage.getItem('onemore_drive_token');
 if (savedToken) {
   driveToken = savedToken;
   syncFromDrive().then(() => {
@@ -1626,7 +1663,7 @@ if (savedToken) {
     render(); renderClarity();
   }).catch(() => {
     driveToken = null;
-    localStorage.removeItem('onemore_drive_token');
+    sessionStorage.removeItem('onemore_drive_token');
     // gate stays visible
   });
 }
