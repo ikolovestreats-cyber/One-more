@@ -1591,7 +1591,7 @@ function startSignIn() {
       await syncFromDrive();
       document.getElementById('signinGate').classList.add('hidden');
       document.getElementById('mainApp').style.display = '';
-      setSyncStatus('synced', 'synced');
+      setSyncStatus('ok', 'synced');
       render(); renderClarity();
     }
   });
