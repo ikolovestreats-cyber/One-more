@@ -41,6 +41,20 @@
 
   .app { max-width: 440px; margin: 0 auto; }
 
+  /* SIGN-IN GATE */
+  .signin-gate { position: fixed; inset: 0; background: var(--bg); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .signin-gate.hidden { display: none; }
+  .signin-card { background: #fff; border-radius: 16px; padding: 40px 32px; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,.08); border: 1px solid var(--border); }
+  .signin-icon { font-size: 32px; margin-bottom: 12px; color: var(--accent); }
+  .signin-title { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 300; letter-spacing: 0.12em; text-transform: lowercase; color: var(--text); margin-bottom: 8px; }
+  .signin-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; font-weight: 300; }
+  .signin-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border); background: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.15s; }
+  .signin-btn:hover { border-color: var(--accent-muted); background: var(--accent-light); }
+  .signin-loading { display: none; margin-top: 16px; font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .signin-loading.show { display: block; }
+  .signin-error { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 8px; background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; font-size: 12px; }
+  .signin-error.show { display: block; }
+
   /* HEADER */
   .header { margin-bottom: 2.5rem; }
   .wordmark { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 300; color: var(--muted); letter-spacing: 0.12em; text-transform: lowercase; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; }
@@ -493,7 +507,21 @@
 </style>
 </head>
 <body>
-<div class="app">
+<!-- SIGN-IN GATE -->
+<div class="signin-gate" id="signinGate">
+  <div class="signin-card">
+    <div class="signin-icon">✦</div>
+    <div class="signin-title">one more</div>
+    <div class="signin-sub">Sign in with Google Drive to load your data and keep everything synced.</div>
+    <button class="signin-btn" id="signinBtn" onclick="startSignIn()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9a8.78 8.78 0 0 0 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26a5.4 5.4 0 0 1-3.06.85c-2.36 0-4.36-1.6-5.07-3.74H.92v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.93 10.67A5.4 5.4 0 0 1 3.64 9c0-.58.1-1.14.29-1.67V4.99H.92A9 9 0 0 0 0 9c0 1.45.35 2.83.92 4.01l3.01-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .92 4.99l3.01 2.34C4.64 5.18 6.64 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="signin-loading" id="signinLoading">Loading your data…</div>
+    <div class="signin-error" id="signinError"></div>
+  </div>
+</div>
+<div class="app" id="mainApp" style="display:none">
 
   <!-- confirm reset overlay -->
   <div class="confirm-overlay" id="confirm-overlay">
@@ -1540,6 +1568,44 @@ async function saveToDrive() {
 
 // saveToDrive is called from save() above
 
+// ── Sign-in Gate ───────────────────────────────────────
+function startSignIn() {
+  document.getElementById('signinLoading').classList.add('show');
+  document.getElementById('signinError').classList.remove('show');
+  if (typeof google === 'undefined' || !google.accounts) {
+    setTimeout(startSignIn, 300); return;
+  }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) {
+        document.getElementById('signinLoading').classList.remove('show');
+        const e = document.getElementById('signinError');
+        e.textContent = 'Sign-in failed: ' + resp.error;
+        e.classList.add('show');
+        return;
+      }
+      driveToken = resp.access_token;
+      localStorage.setItem('onemore_drive_token', driveToken);
+      await syncFromDrive();
+      document.getElementById('signinGate').classList.add('hidden');
+      document.getElementById('mainApp').style.display = '';
+      setSyncStatus('synced', 'synced');
+      render(); renderClarity();
+    }
+  });
+  client.requestAccessToken({ prompt: 'consent' });
+}
+
+function signOut() {
+  if (driveToken) google.accounts.oauth2.revoke(driveToken, () => {});
+  driveToken = null; driveFileId = null;
+  localStorage.removeItem('onemore_drive_token');
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('signinGate').classList.remove('hidden');
+}
+
 // ── Keyboard shortcuts ─────────────────────────────────
 document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 document.getElementById('reward-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReward(); });
@@ -1549,9 +1615,22 @@ document.getElementById('clarity-outside-input').addEventListener('keydown', e =
 
 // ── Boot ───────────────────────────────────────────────
 load();
-render();
-renderClarity();
-// no button pre-selected — user must actively choose tier each time
+// Try silent token restore
+const savedToken = localStorage.getItem('onemore_drive_token');
+if (savedToken) {
+  driveToken = savedToken;
+  syncFromDrive().then(() => {
+    document.getElementById('signinGate').classList.add('hidden');
+    document.getElementById('mainApp').style.display = '';
+    setSyncStatus('synced', 'synced');
+    render(); renderClarity();
+  }).catch(() => {
+    driveToken = null;
+    localStorage.removeItem('onemore_drive_token');
+    // gate stays visible
+  });
+}
+// no button pre-selected
 currentRewardWeight = null;
 ['light','medium','heavy'].forEach(wt => {
   const btn = document.getElementById('rwbtn-'+wt);
