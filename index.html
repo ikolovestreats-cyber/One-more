@@ -394,12 +394,19 @@
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
   }
-  .clarity-event-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+  .clarity-event-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; }
+  .clarity-event-header-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .clarity-event-chevron { display: inline-block; flex-shrink: 0; transition: transform 0.2s; font-style: normal; color: var(--muted); }
   .clarity-event-name { font-size: 16px; font-weight: 500; color: var(--text); word-break: break-word; }
   .clarity-event-acts { display: flex; gap: 2px; flex-shrink: 0; }
+  .clarity-event-card.collapsed .clarity-event-header { margin-bottom: 0; }
+  .clarity-event-card:not(.collapsed) .clarity-event-header { margin-bottom: 14px; }
 
-  .clarity-cat { margin-bottom: 16px; }
-  .clarity-cat:last-child { margin-bottom: 0; }
+  .clarity-cats-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 16px; }
+  @media(max-width:640px){
+    .clarity-cats-grid { grid-template-columns: 1fr; }
+  }
+  .clarity-cat { margin-bottom: 0; }
   .clarity-cat-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
   .clarity-cat-label.within { color: var(--accent); }
   .clarity-cat-label.outside { color: #4A7C59; }
@@ -692,6 +699,7 @@ function assignRewardToTask(taskId, weight) {
 // ── Clarity ────────────────────────────────────────────
 const CLARITY_CATS = ['within', 'outside', 'planb', 'observation'];
 const CLARITY_CAT_LABELS = { within: 'within my control', outside: 'outside my control', planb: 'plan b', observation: 'observation' };
+let clarityCollapsed = new Set();
 
 function newId() { return String(Date.now()) + String(Math.random()).slice(2,7); }
 
@@ -724,6 +732,12 @@ function unarchiveClarityEvent(id) {
   if (!ev) return;
   ev.archived = false;
   save(); renderClarity();
+}
+
+function toggleClarityEventCollapse(id) {
+  if (clarityCollapsed.has(id)) clarityCollapsed.delete(id);
+  else clarityCollapsed.add(id);
+  renderClarity();
 }
 
 function addClarityItem(eventId, cat) {
@@ -807,29 +821,34 @@ function clarityItemTpl(ev, cat, item) {
 }
 
 function clarityEventCardTpl(ev) {
+  const collapsed = clarityCollapsed.has(ev.id);
   const cats = CLARITY_CATS.map(cat => `
     <div class="clarity-cat ${cat}">
       <div class="clarity-cat-label ${cat}">${CLARITY_CAT_LABELS[cat]}</div>
       <div class="add-row mini">
         <input type="text" id="ci-input-${ev.id}-${cat}" placeholder=""
+          onclick="event.stopPropagation()"
           onkeydown="if(event.key==='Enter')addClarityItem('${ev.id}','${cat}')" />
-        <button onclick="addClarityItem('${ev.id}','${cat}')">add</button>
+        <button onclick="event.stopPropagation();addClarityItem('${ev.id}','${cat}')">add</button>
       </div>
-      <div class="clarity-list">
+      <div class="clarity-list" onclick="event.stopPropagation()">
         ${ev[cat].length ? ev[cat].map(item => clarityItemTpl(ev, cat, item)).join('') : '<div class="empty">nothing here right now</div>'}
       </div>
     </div>`).join('');
 
   return `
-    <div class="clarity-event-card" data-id="${ev.id}">
-      <div class="clarity-event-header">
-        <span class="clarity-event-name">${escHtml(ev.name)}</span>
+    <div class="clarity-event-card ${collapsed ? 'collapsed' : ''}" data-id="${ev.id}">
+      <div class="clarity-event-header" onclick="toggleClarityEventCollapse('${ev.id}')">
+        <div class="clarity-event-header-left">
+          <em class="clarity-event-chevron" style="transform:rotate(${collapsed ? '0' : '90'}deg)">›</em>
+          <span class="clarity-event-name">${escHtml(ev.name)}</span>
+        </div>
         <div class="clarity-event-acts">
-          <button class="c-btn" onclick="archiveClarityEvent('${ev.id}')" title="archive">↓</button>
-          <button class="c-btn" onclick="removeClarityEvent('${ev.id}')" title="delete" style="color:#B91C1C">×</button>
+          <button class="c-btn" onclick="event.stopPropagation();archiveClarityEvent('${ev.id}')" title="archive">↓</button>
+          <button class="c-btn" onclick="event.stopPropagation();removeClarityEvent('${ev.id}')" title="delete" style="color:#B91C1C">×</button>
         </div>
       </div>
-      ${cats}
+      ${collapsed ? '' : `<div class="clarity-cats-grid">${cats}</div>`}
     </div>`;
 }
 
