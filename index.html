@@ -387,7 +387,6 @@
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
   /* CLARITY TAB */
-  .clarity-intro { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; font-weight: 300; }
   .clarity-list .empty { font-size: 13px; color: var(--muted); font-weight: 300; padding: 4px 0 12px; }
 
   .clarity-event-card {
@@ -438,6 +437,29 @@
     transition: color 0.15s, background 0.15s;
   }
   .c-btn:hover { color: var(--text); background: var(--bg); }
+
+  /* EXPERIMENTS TAB */
+  .clarity-cat-label.issues { color: #C06B7A; }
+  .clarity-cat-label.worked { color: #4A7C59; }
+  .clarity-cat.issues .clarity-item { background: #FDF6F7; border-color: #EDD5D9; }
+  .clarity-cat.issues .clarity-item-text { color: #A8555F; }
+  .clarity-cat.worked .clarity-item { background: #F4FAF6; border-color: #C8DFD0; }
+  .clarity-cat.worked .clarity-item-text { color: #3D6B4F; }
+  .exp-status-row { display: flex; gap: 6px; margin-top: 4px; }
+  .exp-status-row button {
+    flex: 1; height: 30px; border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border); background: none;
+    font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 400;
+    color: var(--muted); cursor: pointer; letter-spacing: .06em;
+    text-transform: uppercase; transition: all .15s;
+  }
+  .exp-status-row button.active-pending { border-color: var(--muted); background: var(--light-bg); color: var(--text); }
+  .exp-status-row button.active-approved { border-color: var(--success); background: #EAF7F0; color: var(--success); }
+  .exp-status-row button.active-rejected { border-color: #E05C5C; background: #FDEDED; color: #C0392B; }
+  .exp-status-badge { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
+  .exp-status-badge.pending { background: var(--light-bg); color: var(--muted); }
+  .exp-status-badge.approved { background: #EAF7F0; color: var(--success); }
+  .exp-status-badge.rejected { background: #FDEDED; color: #C0392B; }
 
   .archive-toggle {
     display: flex; align-items: center; gap: 6px;
@@ -517,11 +539,11 @@
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('clarity')">clarity</button>
     <button class="tab-btn" onclick="switchTab('tasks')">tasks</button>
+    <button class="tab-btn" onclick="switchTab('experiments')">experiments</button>
   </div>
 
   <!-- CLARITY TAB -->
   <div class="tab-panel active" id="tab-clarity">
-    <div class="clarity-intro">Break an event or task into what's within your control, what's outside it, your fallback plan, and what you're noticing.</div>
     <div class="add-row" style="margin-top:0;margin-bottom:18px">
       <input type="text" id="clarity-event-input" placeholder="add an event or task, e.g. interview" />
       <button onclick="addClarityEvent()">add</button>
@@ -547,8 +569,7 @@
 
   <!-- tasks -->
   <div class="section">
-    <div class="section-head">
-      <span class="section-label">tasks</span>
+    <div class="section-head" style="justify-content:flex-end">
       <div style="display:flex;align-items:center;gap:12px">
         <div class="weight-legend">
           <span class="wleg"><span class="wdot heavy"></span>heavy</span>
@@ -574,9 +595,6 @@
 
   <!-- rewards -->
   <div class="section">
-    <div class="section-head">
-      <span class="section-label">rewards pool</span>
-    </div>
     <div class="reward-pills" id="reward-list"></div>
     <div class="add-row">
       <input type="text" id="reward-input" placeholder="add a reward…" />
@@ -589,6 +607,21 @@
   </div>
 
   </div><!-- /tab-tasks -->
+
+  <!-- EXPERIMENTS TAB -->
+  <div class="tab-panel" id="tab-experiments">
+    <div class="add-row" style="margin-top:0;margin-bottom:18px">
+      <input type="text" id="experiment-input" placeholder="add an experiment, e.g. no caffeine after 2pm" />
+      <button onclick="addExperiment()">add</button>
+    </div>
+    <div id="experiments-list"></div>
+    <button class="archive-toggle" id="experiments-archive-toggle" onclick="toggleExperimentsArchive()" style="display:none;margin-top:16px">
+      <em class="chevron">›</em> archived
+    </button>
+    <div class="archive-section" id="experiments-archive-section" style="display:none">
+      <div id="experiments-archive-list"></div>
+    </div>
+  </div><!-- /tab-experiments -->
 
 </div>
 
@@ -644,7 +677,8 @@ let state = {
   rewardsEarned: 0,
   tasksSinceLast: 0,
   lastReset: new Date().toDateString(),
-  clarityEvents: []
+  clarityEvents: [],
+  experiments: []
 };
 
 function _save() {
@@ -663,6 +697,7 @@ function load() {
       const saved = JSON.parse(raw);
       state = { ...state, ...saved };
       if (!state.clarityEvents) state.clarityEvents = [];
+      if (!state.experiments) state.experiments = [];
       // old schema fields no longer supported — drop them
       delete state.constraints;
       delete state.constraintArchive;
@@ -701,7 +736,8 @@ const CLARITY_CATS = ['within', 'outside', 'planb', 'observation'];
 const CLARITY_CAT_LABELS = { within: 'within my control', outside: 'outside my control', planb: 'plan b', observation: 'observation' };
 let clarityCollapsed = new Set();
 
-function newId() { return String(Date.now()) + String(Math.random()).slice(2,7); }
+let _idCounter = 0;
+function newId() { _idCounter++; return String(Date.now()) + '-' + _idCounter + '-' + String(Math.random()).slice(2,7); }
 
 function addClarityEvent() {
   const input = document.getElementById('clarity-event-input');
@@ -869,6 +905,183 @@ function renderClarity() {
         <span class="archive-item-text" style="flex:1">${escHtml(ev.name)}</span>
         <button class="clarity-remove-btn" onclick="unarchiveClarityEvent('${ev.id}')" title="restore">↑</button>
         <button class="clarity-remove-btn" onclick="removeClarityEvent('${ev.id}')" title="delete">×</button>
+      </div>`).join('');
+  } else {
+    toggle.style.display = 'none';
+  }
+}
+
+// ── Experiments ─────────────────────────────────────────
+let experimentsCollapsed = new Set();
+
+function addExperiment() {
+  const input = document.getElementById('experiment-input');
+  const val = input.value.trim();
+  if (!val) return;
+  state.experiments.push({
+    id: newId(), name: val, archived: false, status: 'pending',
+    issues: [], worked: [], nextStep: ''
+  });
+  input.value = '';
+  save(); renderExperiments();
+}
+
+function removeExperiment(id) {
+  state.experiments = state.experiments.filter(e => String(e.id) !== String(id));
+  save(); renderExperiments();
+}
+
+function archiveExperiment(id) {
+  const exp = state.experiments.find(e => String(e.id) === String(id));
+  if (!exp) return;
+  exp.archived = true;
+  save(); renderExperiments();
+}
+
+function unarchiveExperiment(id) {
+  const exp = state.experiments.find(e => String(e.id) === String(id));
+  if (!exp) return;
+  exp.archived = false;
+  save(); renderExperiments();
+}
+
+function toggleExperimentCollapse(id) {
+  if (experimentsCollapsed.has(id)) experimentsCollapsed.delete(id);
+  else experimentsCollapsed.add(id);
+  renderExperiments();
+}
+
+function addExperimentItem(expId, listName) {
+  const exp = state.experiments.find(e => String(e.id) === String(expId));
+  if (!exp) return;
+  const input = document.getElementById('exp-input-' + expId + '-' + listName);
+  const val = input.value.trim();
+  if (!val) return;
+  exp[listName].push({ id: newId(), text: val });
+  input.value = '';
+  save(); renderExperiments();
+}
+
+function removeExperimentItem(expId, listName, itemId) {
+  const exp = state.experiments.find(e => String(e.id) === String(expId));
+  if (!exp) return;
+  exp[listName] = exp[listName].filter(i => String(i.id) !== String(itemId));
+  save(); renderExperiments();
+}
+
+function setExperimentStatus(expId, status) {
+  const exp = state.experiments.find(e => String(e.id) === String(expId));
+  if (!exp) return;
+  exp.status = status;
+  save(); renderExperiments();
+}
+
+function saveNextStep(expId) {
+  const exp = state.experiments.find(e => String(e.id) === String(expId));
+  if (!exp) return;
+  const inp = document.getElementById('exp-next-' + expId);
+  if (inp) exp.nextStep = inp.value;
+  save();
+}
+
+function promoteNextStep(expId) {
+  const exp = state.experiments.find(e => String(e.id) === String(expId));
+  if (!exp || !exp.nextStep || !exp.nextStep.trim()) return;
+  state.experiments.push({
+    id: newId(), name: exp.nextStep.trim(), archived: false, status: 'pending',
+    issues: [], worked: [], nextStep: ''
+  });
+  save(); renderExperiments();
+  showToast('new experiment started');
+}
+
+function toggleExperimentsArchive() {
+  const sec = document.getElementById('experiments-archive-section');
+  const toggle = document.getElementById('experiments-archive-toggle');
+  const chevron = toggle.querySelector('.chevron');
+  const isOpen = sec.style.display !== 'none';
+  sec.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function experimentItemTpl(exp, listName, item) {
+  return `
+    <div class="clarity-item">
+      <div class="clarity-item-text">${escHtml(item.text)}</div>
+      <div class="clarity-item-acts">
+        <button class="clarity-remove-btn" onclick="removeExperimentItem('${exp.id}','${listName}','${item.id}')" aria-label="remove">×</button>
+      </div>
+    </div>`;
+}
+
+function experimentCardTpl(exp) {
+  const collapsed = experimentsCollapsed.has(exp.id);
+  const listsHtml = ['issues','worked'].map(listName => `
+    <div class="clarity-cat ${listName}">
+      <div class="clarity-cat-label ${listName}">${listName === 'issues' ? 'issues' : 'what worked'}</div>
+      <div class="add-row mini">
+        <input type="text" id="exp-input-${exp.id}-${listName}" placeholder=""
+          onclick="event.stopPropagation()"
+          onkeydown="if(event.key==='Enter')addExperimentItem('${exp.id}','${listName}')" />
+        <button onclick="event.stopPropagation();addExperimentItem('${exp.id}','${listName}')">add</button>
+      </div>
+      <div class="clarity-list" onclick="event.stopPropagation()">
+        ${exp[listName].length ? exp[listName].map(item => experimentItemTpl(exp, listName, item)).join('') : '<div class="empty">nothing here right now</div>'}
+      </div>
+    </div>`).join('');
+
+  return `
+    <div class="clarity-event-card ${collapsed ? 'collapsed' : ''}" data-id="${exp.id}">
+      <div class="clarity-event-header" onclick="toggleExperimentCollapse('${exp.id}')">
+        <div class="clarity-event-header-left">
+          <em class="clarity-event-chevron" style="transform:rotate(${collapsed ? '0' : '90'}deg)">›</em>
+          <span class="clarity-event-name">${escHtml(exp.name)}</span>
+          <span class="exp-status-badge ${exp.status}">${exp.status}</span>
+        </div>
+        <div class="clarity-event-acts">
+          <button class="c-btn" onclick="event.stopPropagation();archiveExperiment('${exp.id}')" title="archive">↓</button>
+          <button class="c-btn" onclick="event.stopPropagation();removeExperiment('${exp.id}')" title="delete" style="color:#B91C1C">×</button>
+        </div>
+      </div>
+      ${collapsed ? '' : `
+      <div class="clarity-cats-grid">${listsHtml}</div>
+      <div class="clarity-cat" style="margin-top:16px" onclick="event.stopPropagation()">
+        <div class="clarity-cat-label" style="color:var(--muted)">status</div>
+        <div class="exp-status-row">
+          <button class="${exp.status==='pending'?'active-pending':''}" onclick="setExperimentStatus('${exp.id}','pending')">pending</button>
+          <button class="${exp.status==='approved'?'active-approved':''}" onclick="setExperimentStatus('${exp.id}','approved')">approved</button>
+          <button class="${exp.status==='rejected'?'active-rejected':''}" onclick="setExperimentStatus('${exp.id}','rejected')">rejected</button>
+        </div>
+      </div>
+      <div class="clarity-cat" style="margin-top:16px" onclick="event.stopPropagation()">
+        <div class="clarity-cat-label" style="color:var(--accent)">next step</div>
+        <div class="add-row mini">
+          <input type="text" id="exp-next-${exp.id}" placeholder="what's next…" value="${escHtml(exp.nextStep || '')}"
+            onchange="saveNextStep('${exp.id}')"
+            onkeydown="if(event.key==='Enter'){saveNextStep('${exp.id}');promoteNextStep('${exp.id}')}" />
+          <button onclick="saveNextStep('${exp.id}');promoteNextStep('${exp.id}')">→ new experiment</button>
+        </div>
+      </div>`}
+    </div>`;
+}
+
+function renderExperiments() {
+  const list = document.getElementById('experiments-list');
+  const active = state.experiments.filter(e => !e.archived);
+  list.innerHTML = active.length
+    ? active.map(experimentCardTpl).join('')
+    : '<div class="empty">no experiments yet — add one above</div>';
+
+  const toggle = document.getElementById('experiments-archive-toggle');
+  const archiveList = document.getElementById('experiments-archive-list');
+  const archived = state.experiments.filter(e => e.archived);
+  if (archived.length > 0) {
+    toggle.style.display = 'block';
+    archiveList.innerHTML = archived.map(exp => `
+      <div class="archive-item" style="display:flex;align-items:center;gap:8px">
+        <span class="archive-item-text" style="flex:1">${escHtml(exp.name)}</span>
+        <button class="clarity-remove-btn" onclick="unarchiveExperiment('${exp.id}')" title="restore">↑</button>
+        <button class="clarity-remove-btn" onclick="removeExperiment('${exp.id}')" title="delete">×</button>
       </div>`).join('');
   } else {
     toggle.style.display = 'none';
@@ -1096,6 +1309,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'clarity') renderClarity();
+  if (name === 'experiments') renderExperiments();
 }
 
 // ── Task Editing ───────────────────────────────────────
@@ -1331,6 +1545,7 @@ async function syncFromDrive() {
       if (driveData && driveData.tasks) {
         state = { ...state, ...driveData };
         if (!state.clarityEvents) state.clarityEvents = [];
+        if (!state.experiments) state.experiments = [];
         delete state.constraints;
         delete state.constraintArchive;
         delete state.clarityWithin;
@@ -1429,6 +1644,7 @@ function signOut() {
 document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 document.getElementById('reward-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReward(); });
 document.getElementById('clarity-event-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarityEvent(); });
+document.getElementById('experiment-input').addEventListener('keydown', e => { if (e.key === 'Enter') addExperiment(); });
 
 // ── Boot ───────────────────────────────────────────────
 load();
