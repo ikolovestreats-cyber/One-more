@@ -388,56 +388,42 @@
   .tab-panel.active { display: block; }
   /* CLARITY TAB */
   .clarity-intro { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; font-weight: 300; }
-  .clarity-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: start; }
-  .clarity-divider { width: 1px; background: var(--border); margin: 0 40px; align-self: stretch; }
-  @media(max-width:640px){ 
-    .clarity-grid{ grid-template-columns: 1fr; }
-    .clarity-divider { width: auto; height: 1px; margin: 28px 0; align-self: auto; }
-  }
-  .clarity-col-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-  .clarity-col-label.within { color: var(--accent); }
-  .clarity-col-label.planb { color: #B45309; }
-  .clarity-planb-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); }
-  .clarity-planb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .clarity-col.planb .clarity-item { background: #FFFBEB; border-color: #FDE68A; }
-  .clarity-col.planb .clarity-item-text { color: #92400E; }
-  #clarity-planb-list .clarity-item { background: #FFFBEB; border-color: #FDE68A; }
-  #clarity-planb-list .clarity-item-text { color: #92400E; }
   .clarity-list .empty { font-size: 13px; color: var(--muted); font-weight: 300; padding: 4px 0 12px; }
-  .clarity-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 7px; background: var(--accent-light); border-color: var(--accent-muted); }
-  .clarity-col.outside .clarity-item { background: #F4FAF6; border-color: #C8DFD0; }
-  .clarity-col.outside .clarity-item-text { color: #3D6B4F; }
+
+  .clarity-event-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+  }
+  .clarity-event-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+  .clarity-event-name { font-size: 16px; font-weight: 500; color: var(--text); word-break: break-word; }
+  .clarity-event-acts { display: flex; gap: 2px; flex-shrink: 0; }
+
+  .clarity-cat { margin-bottom: 16px; }
+  .clarity-cat:last-child { margin-bottom: 0; }
+  .clarity-cat-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .clarity-cat-label.within { color: var(--accent); }
+  .clarity-cat-label.outside { color: #4A7C59; }
+  .clarity-cat-label.planb { color: var(--medium); }
+  .clarity-cat-label.observation { color: #4A6C99; }
+
+  .add-row.mini { margin-top: 0; margin-bottom: 8px; gap: 5px; }
+  .add-row.mini input { height: 32px; font-size: 13px; }
+  .add-row.mini button { height: 32px; padding: 0 12px; font-size: 12px; }
+
+  .clarity-item { display: flex; align-items: flex-start; gap: 8px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; background: var(--accent-light); border-color: var(--accent-muted); }
+  .clarity-cat.outside .clarity-item { background: #F4FAF6; border-color: #C8DFD0; }
+  .clarity-cat.outside .clarity-item-text { color: #3D6B4F; }
+  .clarity-cat.planb .clarity-item { background: var(--medium-bg); border-color: #E4C68A; }
+  .clarity-cat.planb .clarity-item-text { color: var(--medium); }
+  .clarity-cat.observation .clarity-item { background: #F0F5FA; border-color: #C6D8E8; }
+  .clarity-cat.observation .clarity-item-text { color: #3E5C7A; }
   .clarity-item-text { flex: 1; font-size: 13px; line-height: 1.5; word-break: break-word; }
-  .clarity-item-meta { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 3px; }
   .clarity-item-acts { display: flex; gap: 4px; flex-shrink: 0; }
   .clarity-promote-btn { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--accent-muted); color: var(--accent); background: var(--accent-light); border-radius: 6px; padding: 4px 7px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .clarity-promote-btn:hover { background: var(--accent); color: #fff; }
   .clarity-weight-picker { display: none; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .clarity-remove-btn { width: 22px; height: 22px; border: none; background: none; color: var(--muted); cursor: pointer; font-size: 15px; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; }
   .clarity-remove-btn:hover { background: #FEF2F2; color: #B91C1C; }
-
-  /* CONSTRAINTS */
-  .constraint-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-  .constraint-item {
-    background: #FDF6F7; border: 1px solid #EDD5D9;
-    border-radius: var(--radius-sm); padding: 12px 14px;
-    display: flex; flex-direction: column; gap: 6px; position: relative;
-  }
-  .constraint-item::before { display: none; }
-  .constraint-item.expired { background: var(--surface); border-color: var(--border); opacity: 0.5; }
-  .constraint-item::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-    width: 3px; border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-    background: var(--accent);
-  }
-  .constraint-item.expired::before { background: var(--muted); }
-  .constraint-item.expired { opacity: 0.5; }
-  .constraint-row { display: flex; align-items: center; gap: 10px; }
-  .constraint-text { font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; }
-  .constraint-expiry { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
-  .constraint-expiry.soon { color: var(--medium); }
-  .constraint-expiry.expired-label { color: var(--muted); text-decoration: line-through; }
-  .constraint-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .c-btn {
     width: 24px; height: 24px; border-radius: 50%; border: none; background: none;
     color: var(--muted); font-size: 14px; line-height: 1; cursor: pointer;
@@ -445,51 +431,7 @@
     transition: color 0.15s, background 0.15s;
   }
   .c-btn:hover { color: var(--text); background: var(--bg); }
-  .constraint-cap {
-    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
-    text-align: center; padding: 8px; letter-spacing: 0.08em;
-  }
-  .constraint-add-area { margin-top: 4px; }
-  .constraint-input-row { display: flex; gap: 6px; margin-bottom: 6px; }
-  .constraint-input-row input {
-    flex: 1; height: 38px; padding: 0 12px;
-    font-family: 'DM Sans', sans-serif; font-size: 14px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text); outline: none;
-    transition: border-color 0.15s;
-  }
-  .constraint-input-row input:focus { border-color: var(--accent); }
-  .constraint-input-row input::placeholder { color: var(--muted); }
-  .constraint-input-row button {
-    height: 38px; padding: 0 16px;
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-    background: var(--accent); color: #fff; border: none;
-    border-radius: var(--radius-sm); cursor: pointer; transition: opacity 0.15s;
-  }
-  .constraint-input-row button:hover { opacity: 0.88; }
-  .constraint-expiry-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .constraint-expiry-row label {
-    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
-    letter-spacing: 0.08em; text-transform: uppercase; flex-shrink: 0;
-  }
-  .constraint-expiry-row input[type="date"] {
-    height: 32px; padding: 0 10px;
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text); outline: none; cursor: pointer;
-  }
-  .constraint-expiry-row input[type="date"]:focus { border-color: var(--accent); }
-  .expiry-hint { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
-  .constraint-edit-input {
-    flex: 1; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    padding: 4px 8px; border: 1px solid var(--accent);
-    border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none;
-  }
-  .constraint-edit-date {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    padding: 3px 8px; border: 1px solid var(--border);
-    border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; cursor: pointer;
-  }
+
   .archive-toggle {
     display: flex; align-items: center; gap: 6px;
     background: none; border: none; cursor: pointer;
@@ -558,8 +500,8 @@
       <div class="backup-row">
         <div class="sync-status" id="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">not connected</span></div>
         <button class="sync-btn" id="sync-btn" onclick="toggleDriveAuth()">⟳ drive</button>
-        <button class="backup-btn" onclick="importData()" title="Restore from backup">⬆ import</button>
-        <button class="backup-btn" onclick="exportData()" title="Save backup">⬇ export</button>
+        <button class="backup-btn" onclick="importData()" title="Restore from backup">⬇ import</button>
+        <button class="backup-btn" onclick="exportData()" title="Save backup">⬆ export</button>
       </div>
     </div>
   </div>
@@ -568,47 +510,21 @@
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('clarity')">clarity</button>
     <button class="tab-btn" onclick="switchTab('tasks')">tasks</button>
-    <button class="tab-btn" onclick="switchTab('constraints')">constraints</button>
   </div>
 
   <!-- CLARITY TAB -->
   <div class="tab-panel active" id="tab-clarity">
-    <div class="clarity-intro">Act on what you can control. Let go of what you can't. Make a plan B.</div>
-    <div class="clarity-grid">
-      <div class="clarity-col">
-        <div class="clarity-col-label within">within my control</div>
-        <div class="add-row" style="margin-top:0;margin-bottom:10px">
-          <input type="text" id="clarity-within-input" placeholder="" />
-          <button onclick="addClarity('within')">add</button>
-        </div>
-        <div class="clarity-list" id="clarity-within-list"></div>
-      </div>
-      <div class="clarity-divider"></div>
-      <div class="clarity-col outside">
-        <div class="clarity-col-label outside">outside my control</div>
-        <div class="add-row" style="margin-top:0;margin-bottom:10px">
-          <input type="text" id="clarity-outside-input" placeholder="" />
-          <button onclick="addClarity('outside')">add</button>
-        </div>
-        <div class="clarity-list" id="clarity-outside-list"></div>
-      </div>
+    <div class="clarity-intro">Break an event or task into what's within your control, what's outside it, your fallback plan, and what you're noticing.</div>
+    <div class="add-row" style="margin-top:0;margin-bottom:18px">
+      <input type="text" id="clarity-event-input" placeholder="add an event or task, e.g. interview" />
+      <button onclick="addClarityEvent()">add</button>
     </div>
+    <div id="clarity-events-list"></div>
     <button class="archive-toggle" id="clarity-archive-toggle" onclick="toggleClarityArchive()" style="display:none;margin-top:16px">
-      <em class="chevron">›</em> released
+      <em class="chevron">›</em> archived
     </button>
     <div class="archive-section" id="clarity-archive-section" style="display:none">
       <div id="clarity-archive-list"></div>
-    </div>
-    <div class="clarity-planb-section">
-      <div class="clarity-planb-header">
-        <div class="clarity-col-label planb">plan b</div>
-        <div style="font-size:11px;color:var(--muted);font-weight:300">if the outcome isn't what you hoped</div>
-      </div>
-      <div class="add-row" style="margin-top:0;margin-bottom:10px">
-        <input type="text" id="clarity-planb-input" placeholder="" />
-        <button onclick="addClarity('planb')">add</button>
-      </div>
-      <div class="clarity-list" id="clarity-planb-list"></div>
     </div>
   </div>
 
@@ -667,29 +583,6 @@
 
   </div><!-- /tab-tasks -->
 
-  <!-- CONSTRAINTS TAB -->
-  <div class="tab-panel" id="tab-constraints">
-    <div class="section">
-      <div class="section-head">
-        <span class="section-label" style="color:#C06B7A;font-size:11px;font-weight:700">this week's rules</span>
-        <span class="section-label" id="constraint-count-label" style="color:var(--accent)"></span>
-      </div>
-      <div class="constraint-list" id="constraint-list"></div>
-      <div class="constraint-add-area" id="constraint-add-area">
-        <div class="constraint-input-row">
-          <input type="text" id="constraint-input" placeholder="add a constraint…" />
-          <button onclick="addConstraint()">add</button>
-        </div>
-      </div>
-    </div>
-    <button class="archive-toggle" id="archive-toggle" onclick="toggleArchive()">
-      <em class="chevron">›</em> archive
-    </button>
-    <div class="archive-section" id="archive-section">
-      <div id="archive-list"></div>
-    </div>
-  </div><!-- /tab-constraints -->
-
 </div>
 
 <div class="toast" id="toast"></div>
@@ -705,9 +598,9 @@
   </div>
   <div class="timer-duration-row" id="timer-duration-row">
     <button class="timer-dur-btn active" onclick="setDuration(5)">5m</button>
+    <button class="timer-dur-btn" onclick="setDuration(10)">10m</button>
+    <button class="timer-dur-btn" onclick="setDuration(15)">15m</button>
     <button class="timer-dur-btn" onclick="setDuration(25)">25m</button>
-    <button class="timer-dur-btn" onclick="setDuration(45)">45m</button>
-    <button class="timer-dur-btn" onclick="setDuration(60)">60m</button>
   </div>
   <div class="timer-controls">
     <button class="timer-btn start" id="timer-start-btn" onclick="toggleTimer()">start</button>
@@ -744,12 +637,7 @@ let state = {
   rewardsEarned: 0,
   tasksSinceLast: 0,
   lastReset: new Date().toDateString(),
-  constraints: [],
-  constraintArchive: [],
-  clarityWithin: [],
-  clarityOutside: [],
-  clarityOutsideArchive: [],
-  clarityPlanb: []
+  clarityEvents: []
 };
 
 function _save() {
@@ -767,16 +655,13 @@ function load() {
     if (raw) {
       const saved = JSON.parse(raw);
       state = { ...state, ...saved };
-      if (!state.constraints) state.constraints = [];
-      if (!state.constraintArchive) state.constraintArchive = [];
-      if (!state.clarityWithin) state.clarityWithin = [];
-      if (!state.clarityOutside) state.clarityOutside = [];
-      if (!state.clarityOutsideArchive) state.clarityOutsideArchive = [];
-      if (!state.clarityPlanb) state.clarityPlanb = [];
-      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-      const now = Date.now();
-      state.clarityOutside = state.clarityOutside.filter(c => (now - c.createdAt) < sevenDaysMs);
-      state.clarityOutsideArchive = state.clarityOutsideArchive.filter(c => (now - c.archivedAt) < sevenDaysMs);
+      if (!state.clarityEvents) state.clarityEvents = [];
+      // old schema fields no longer supported — drop them
+      delete state.constraints;
+      delete state.constraintArchive;
+      delete state.clarityWithin;
+      delete state.clarityOutside;
+      delete state.clarityOutsideArchive;
       if (state.lastReset !== new Date().toDateString()) {
         state.doneToday = 0;
         state.lastReset = new Date().toDateString();
@@ -805,30 +690,57 @@ function assignRewardToTask(taskId, weight) {
 }
 
 // ── Clarity ────────────────────────────────────────────
-function addClarity(kind) {
-  const input = document.getElementById('clarity-' + kind + '-input');
+const CLARITY_CATS = ['within', 'outside', 'planb', 'observation'];
+const CLARITY_CAT_LABELS = { within: 'within my control', outside: 'outside my control', planb: 'plan b', observation: 'observation' };
+
+function newId() { return String(Date.now()) + String(Math.random()).slice(2,7); }
+
+function addClarityEvent() {
+  const input = document.getElementById('clarity-event-input');
   const val = input.value.trim();
   if (!val) return;
-  const item = { id: String(Date.now()) + String(Math.random()).slice(2,7), text: val, createdAt: Date.now() };
-  if (kind === 'within') state.clarityWithin.push(item);
-  else if (kind === 'outside') state.clarityOutside.push(item);
-  else if (kind === 'planb') state.clarityPlanb.push(item);
+  state.clarityEvents.push({
+    id: newId(), name: val, archived: false,
+    within: [], outside: [], planb: [], observation: []
+  });
   input.value = '';
   save(); renderClarity();
 }
 
-function removeClarity(kind, id) {
-  if (kind === 'within') state.clarityWithin = state.clarityWithin.filter(c => String(c.id) !== String(id));
-  else if (kind === 'outside') state.clarityOutside = state.clarityOutside.filter(c => String(c.id) !== String(id));
-  else if (kind === 'planb') state.clarityPlanb = state.clarityPlanb.filter(c => String(c.id) !== String(id));
+function removeClarityEvent(id) {
+  state.clarityEvents = state.clarityEvents.filter(e => String(e.id) !== String(id));
   save(); renderClarity();
 }
 
-function archiveClarityOutside(id) {
-  const item = state.clarityOutside.find(c => String(c.id) === String(id));
-  if (!item) return;
-  state.clarityOutsideArchive.unshift({ ...item, archivedAt: Date.now() });
-  state.clarityOutside = state.clarityOutside.filter(c => String(c.id) !== String(id));
+function archiveClarityEvent(id) {
+  const ev = state.clarityEvents.find(e => String(e.id) === String(id));
+  if (!ev) return;
+  ev.archived = true;
+  save(); renderClarity();
+}
+
+function unarchiveClarityEvent(id) {
+  const ev = state.clarityEvents.find(e => String(e.id) === String(id));
+  if (!ev) return;
+  ev.archived = false;
+  save(); renderClarity();
+}
+
+function addClarityItem(eventId, cat) {
+  const ev = state.clarityEvents.find(e => String(e.id) === String(eventId));
+  if (!ev) return;
+  const input = document.getElementById('ci-input-' + eventId + '-' + cat);
+  const val = input.value.trim();
+  if (!val) return;
+  ev[cat].push({ id: newId(), text: val });
+  input.value = '';
+  save(); renderClarity();
+}
+
+function removeClarityItem(eventId, cat, itemId) {
+  const ev = state.clarityEvents.find(e => String(e.id) === String(eventId));
+  if (!ev) return;
+  ev[cat] = ev[cat].filter(c => String(c.id) !== String(itemId));
   save(); renderClarity();
 }
 
@@ -854,92 +766,94 @@ function hideWeightPicker(id) {
   if (acts) acts.style.display = 'flex';
 }
 
-function promoteClarity(id, weight) {
-  const item = state.clarityWithin.find(c => String(c.id) === String(id));
+function promoteClarityItem(eventId, itemId, weight) {
+  const ev = state.clarityEvents.find(e => String(e.id) === String(eventId));
+  if (!ev) return;
+  const item = ev.within.find(c => String(c.id) === String(itemId));
   if (!item) return;
   const w = ['light','medium','heavy'].includes(weight) ? weight : 'medium';
   const taskId = Date.now() + Math.random();
   state.tasks.push({ id: taskId, name: item.text, done: false, weight: w });
   assignRewardToTask(taskId, w);
-  state.clarityWithin = state.clarityWithin.filter(c => String(c.id) !== String(id));
+  ev.within = ev.within.filter(c => String(c.id) !== String(itemId));
   save(); render(); renderClarity();
   switchTab('tasks');
 }
 
-function daysLeft(createdAt) {
-  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-  const elapsed = Date.now() - createdAt;
-  const left = Math.ceil((sevenDaysMs - elapsed) / (24 * 60 * 60 * 1000));
-  return Math.max(0, left);
+function clarityItemTpl(ev, cat, item) {
+  if (cat === 'within') {
+    return `
+      <div class="clarity-item" id="ci-${item.id}">
+        <div class="clarity-item-text">${escHtml(item.text)}</div>
+        <div class="clarity-item-acts" id="ci-acts-${item.id}">
+          <button class="clarity-promote-btn" onclick="showWeightPicker('${item.id}')">→ task</button>
+          <button class="clarity-remove-btn" onclick="removeClarityItem('${ev.id}','within','${item.id}')" aria-label="remove">×</button>
+        </div>
+        <div class="clarity-weight-picker" id="ci-wp-${item.id}" style="display:none">
+          <button class="timer-dur-btn" onclick="promoteClarityItem('${ev.id}','${item.id}','light')">light</button>
+          <button class="timer-dur-btn" onclick="promoteClarityItem('${ev.id}','${item.id}','medium')">medium</button>
+          <button class="timer-dur-btn" onclick="promoteClarityItem('${ev.id}','${item.id}','heavy')">heavy</button>
+          <button class="clarity-remove-btn" onclick="hideWeightPicker('${item.id}')" style="margin-left:4px">×</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="clarity-item">
+      <div class="clarity-item-text">${escHtml(item.text)}</div>
+      <div class="clarity-item-acts">
+        <button class="clarity-remove-btn" onclick="removeClarityItem('${ev.id}','${cat}','${item.id}')" aria-label="remove">×</button>
+      </div>
+    </div>`;
+}
+
+function clarityEventCardTpl(ev) {
+  const cats = CLARITY_CATS.map(cat => `
+    <div class="clarity-cat ${cat}">
+      <div class="clarity-cat-label ${cat}">${CLARITY_CAT_LABELS[cat]}</div>
+      <div class="add-row mini">
+        <input type="text" id="ci-input-${ev.id}-${cat}" placeholder=""
+          onkeydown="if(event.key==='Enter')addClarityItem('${ev.id}','${cat}')" />
+        <button onclick="addClarityItem('${ev.id}','${cat}')">add</button>
+      </div>
+      <div class="clarity-list">
+        ${ev[cat].length ? ev[cat].map(item => clarityItemTpl(ev, cat, item)).join('') : '<div class="empty">nothing here right now</div>'}
+      </div>
+    </div>`).join('');
+
+  return `
+    <div class="clarity-event-card" data-id="${ev.id}">
+      <div class="clarity-event-header">
+        <span class="clarity-event-name">${escHtml(ev.name)}</span>
+        <div class="clarity-event-acts">
+          <button class="c-btn" onclick="archiveClarityEvent('${ev.id}')" title="archive">↓</button>
+          <button class="c-btn" onclick="removeClarityEvent('${ev.id}')" title="delete" style="color:#B91C1C">×</button>
+        </div>
+      </div>
+      ${cats}
+    </div>`;
 }
 
 function renderClarity() {
-  const wList = document.getElementById('clarity-within-list');
-  if (state.clarityWithin.length === 0) {
-    wList.innerHTML = '<div class="empty">nothing here right now</div>';
-  } else {
-    wList.innerHTML = state.clarityWithin.map(c => `
-      <div class="clarity-item" id="ci-${c.id}">
-        <div class="clarity-item-text">${escHtml(c.text)}</div>
-        <div class="clarity-item-acts" id="ci-acts-${c.id}">
-          <button class="clarity-promote-btn" onclick="showWeightPicker('${c.id}')">→ task</button>
-          <button class="clarity-remove-btn" onclick="removeClarity('within', '${c.id}')" aria-label="remove">×</button>
-        </div>
-        <div class="clarity-weight-picker" id="ci-wp-${c.id}" style="display:none;margin-top:8px;display:none">
-          <button class="timer-dur-btn" onclick="promoteClarity('${c.id}','light')">light</button>
-          <button class="timer-dur-btn" onclick="promoteClarity('${c.id}','medium')">medium</button>
-          <button class="timer-dur-btn" onclick="promoteClarity('${c.id}','heavy')">heavy</button>
-          <button class="clarity-remove-btn" onclick="hideWeightPicker('${c.id}')" style="margin-left:4px">×</button>
-        </div>
-      </div>`).join('');
-  }
+  const list = document.getElementById('clarity-events-list');
+  const active = state.clarityEvents.filter(e => !e.archived);
+  list.innerHTML = active.length
+    ? active.map(clarityEventCardTpl).join('')
+    : '<div class="empty">no events yet — add one above</div>';
 
-  const oList = document.getElementById('clarity-outside-list');
-  if (state.clarityOutside.length === 0) {
-    oList.innerHTML = '<div class="empty">nothing here right now</div>';
-  } else {
-    oList.innerHTML = state.clarityOutside.map(c => `
-      <div class="clarity-item">
-        <div class="clarity-item-text">${escHtml(c.text)}</div>
-        <div class="clarity-item-acts">
-          <button class="clarity-promote-btn" onclick="archiveClarityOutside('${c.id}')" style="border-color:#A8C5B0;color:#4A7C59;background:#F4FAF6">↓</button>
-          <button class="clarity-remove-btn" onclick="removeClarity('outside', '${c.id}')" aria-label="let go now">×</button>
-        </div>
-      </div>`).join('');
-  }
-  // plan b
-  const pbList = document.getElementById('clarity-planb-list');
-  if (pbList) {
-    if (!state.clarityPlanb || state.clarityPlanb.length === 0) {
-      pbList.innerHTML = '<div class="empty">nothing here right now</div>';
-    } else {
-      pbList.innerHTML = state.clarityPlanb.map(c => `
-        <div class="clarity-item">
-          <div class="clarity-item-text">${escHtml(c.text)}</div>
-          <div class="clarity-item-acts">
-            <button class="clarity-remove-btn" onclick="removeClarity('planb', '${c.id}')" aria-label="remove">×</button>
-          </div>
-        </div>`).join('');
-    }
-  }
-  // archive
   const toggle = document.getElementById('clarity-archive-toggle');
   const archiveList = document.getElementById('clarity-archive-list');
-  if (state.clarityOutsideArchive && state.clarityOutsideArchive.length > 0) {
+  const archived = state.clarityEvents.filter(e => e.archived);
+  if (archived.length > 0) {
     toggle.style.display = 'block';
-    archiveList.innerHTML = state.clarityOutsideArchive.map(c => `
+    archiveList.innerHTML = archived.map(ev => `
       <div class="archive-item" style="display:flex;align-items:center;gap:8px">
-        <span class="archive-item-text" style="flex:1">${escHtml(c.text)}</span>
-        <button class="clarity-remove-btn" onclick="removeArchivedOutside('${c.id}')">×</button>
+        <span class="archive-item-text" style="flex:1">${escHtml(ev.name)}</span>
+        <button class="clarity-remove-btn" onclick="unarchiveClarityEvent('${ev.id}')" title="restore">↑</button>
+        <button class="clarity-remove-btn" onclick="removeClarityEvent('${ev.id}')" title="delete">×</button>
       </div>`).join('');
   } else {
     toggle.style.display = 'none';
   }
-}
-
-function removeArchivedOutside(id) {
-  state.clarityOutsideArchive = state.clarityOutsideArchive.filter(c => String(c.id) !== String(id));
-  save(); renderClarity();
 }
 function addTask() {
   const input = document.getElementById('task-input');
@@ -1004,7 +918,12 @@ function removeReward(idx) {
 function openConfirm() { document.getElementById('confirm-overlay').classList.add('show'); }
 function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('show'); }
 function confirmReset() {
-  state = { tasks:[], rewards:[], rewardMap:{}, doneToday:0, rewardsEarned:0, tasksSinceLast:0, lastReset:new Date().toDateString(), constraints: state.constraints||[], constraintArchive: state.constraintArchive||[] };
+  state = {
+    ...state,
+    tasks: [], rewards: [], rewardMap: {},
+    doneToday: 0, rewardsEarned: 0, tasksSinceLast: 0,
+    lastReset: new Date().toDateString()
+  };
   save(); render(); closeConfirm();
 }
 
@@ -1157,156 +1076,7 @@ function switchTab(name) {
   });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  if (name === 'constraints') renderConstraints();
   if (name === 'clarity') renderClarity();
-}
-
-// ── Constraints ────────────────────────────────────────
-const CONSTRAINT_MAX = 3;
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-function isExpired(c) { return c.expiry && c.expiry < todayStr(); }
-
-function fmtDate(ymd) {
-  const [y, m, d] = ymd.split('-');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[parseInt(m)-1]} ${parseInt(d)}`;
-}
-
-function expiryLabel(c) {
-  if (!c.expiry) return null;
-  const today = todayStr();
-  if (c.expiry < today) return { text: 'expired ' + fmtDate(c.expiry), cls: 'expired-label' };
-  const diff = Math.round((new Date(c.expiry) - new Date(today)) / 86400000);
-  if (diff === 0) return { text: 'expires today', cls: 'soon' };
-  if (diff === 1) return { text: 'expires tomorrow', cls: 'soon' };
-  if (diff <= 3) return { text: `expires in ${diff} days`, cls: 'soon' };
-  return { text: 'until ' + fmtDate(c.expiry), cls: '' };
-}
-
-function addConstraint() {
-  const input = document.getElementById('constraint-input');
-  const val = input.value.trim();
-  if (!val) return;
-  const active = state.constraints.filter(c => !isExpired(c));
-  if (active.length >= CONSTRAINT_MAX) { showToast('max 3 active constraints'); return; }
-  state.constraints.push({ id: String(Date.now()), text: val, expiry: null, addedOn: todayStr() });
-  input.value = '';
-  save(); renderConstraints();
-}
-
-function deleteConstraint(id) {
-  state.constraints = state.constraints.filter(c => c.id !== id);
-  save(); renderConstraints();
-}
-
-function retireConstraint(id) {
-  const idx = state.constraints.findIndex(c => c.id === id);
-  if (idx === -1) return;
-  const c = state.constraints[idx];
-  state.constraintArchive.unshift({ text: c.text, expiry: c.expiry, addedOn: c.addedOn, retiredOn: todayStr() });
-  if (state.constraintArchive.length > 30) state.constraintArchive = state.constraintArchive.slice(0, 30);
-  state.constraints.splice(idx, 1);
-  save(); renderConstraints();
-  showToast('constraint archived');
-}
-
-let editingConstraintId = null;
-
-function startEditConstraint(id) { editingConstraintId = id; renderConstraints(); }
-
-function saveEditConstraint(id) {
-  const c = state.constraints.find(c => c.id === id);
-  if (!c) return;
-  const textEl = document.getElementById('cedit-text-' + id);
-  const dateEl = document.getElementById('cedit-date-' + id);
-  if (textEl && textEl.value.trim()) c.text = textEl.value.trim();
-  c.expiry = dateEl && dateEl.value ? dateEl.value : null;
-  editingConstraintId = null;
-  save(); renderConstraints();
-}
-
-function cancelEditConstraint() { editingConstraintId = null; renderConstraints(); }
-
-function toggleArchive() {
-  document.getElementById('archive-toggle').classList.toggle('open');
-  document.getElementById('archive-section').classList.toggle('open');
-}
-
-function renderConstraints() {
-  const list = document.getElementById('constraint-list');
-  const addArea = document.getElementById('constraint-add-area');
-  const countLabel = document.getElementById('constraint-count-label');
-  const active = state.constraints.filter(c => !isExpired(c));
-  countLabel.textContent = `${active.length} / ${CONSTRAINT_MAX}`;
-
-  if (state.constraints.length === 0) {
-    list.innerHTML = '<div class="empty" style="font-size:13px;color:var(--muted);padding:8px 0;">no active constraints — add one below</div>';
-  } else {
-    list.innerHTML = state.constraints.map(c => {
-      const exp = isExpired(c);
-      const lbl = expiryLabel(c);
-      if (editingConstraintId === c.id) {
-        return `<div class="constraint-item">
-          <div class="constraint-row">
-            <input class="constraint-edit-input" id="cedit-text-${c.id}" value="${escHtml(c.text)}" />
-            <div class="constraint-actions">
-              <button class="c-btn" onclick="saveEditConstraint('${c.id}')">✓</button>
-              <button class="c-btn" onclick="cancelEditConstraint()">✕</button>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">expires</span>
-            <input type="date" class="constraint-edit-date" id="cedit-date-${c.id}" value="${c.expiry || ''}" />
-          </div>
-        </div>`;
-      }
-      return `<div class="constraint-item ${exp ? 'expired' : ''}">
-        <div class="constraint-row">
-          <span class="constraint-text">${escHtml(c.text)}</span>
-          <div class="constraint-actions">
-            <button class="c-btn" onclick="startEditConstraint('${c.id}')">✎</button>
-            <button class="c-btn" onclick="retireConstraint('${c.id}')">↓</button>
-            <button class="c-btn" onclick="deleteConstraint('${c.id}')" style="color:#B91C1C" title="delete">✕</button>
-          </div>
-        </div>
-        ${lbl ? `<div class="constraint-expiry ${lbl.cls}">${lbl.text}</div>` : ''}
-      </div>`;
-    }).join('');
-  }
-
-  // cap message
-  const existing = document.querySelector('.constraint-cap');
-  if (existing) existing.remove();
-  if (active.length >= CONSTRAINT_MAX) {
-    addArea.style.display = 'none';
-    const msg = document.createElement('div');
-    msg.className = 'constraint-cap';
-    msg.textContent = 'cap reached — retire one to add another';
-    list.insertAdjacentElement('afterend', msg);
-  } else {
-    addArea.style.display = 'block';
-  }
-
-  // archive
-  const archiveList = document.getElementById('archive-list');
-  archiveList.innerHTML = state.constraintArchive.length === 0
-    ? '<div class="archive-empty">nothing archived yet</div>'
-    : `<div style="display:flex;justify-content:flex-end;margin-bottom:6px">
-        <button class="clear-btn" onclick="clearConstraintArchive()">clear all</button>
-       </div>` +
-      state.constraintArchive.map((c,i) => `
-      <div class="archive-item" style="display:flex;align-items:center;gap:8px">
-        <div style="flex:1">
-          <span class="archive-item-text">${escHtml(c.text)}</span>
-          <span class="archive-item-meta">${c.retiredOn ? fmtDate(c.retiredOn) : ''}${c.expiry ? '<br>until ' + fmtDate(c.expiry) : ''}</span>
-        </div>
-        <button class="clarity-remove-btn" onclick="removeArchivedConstraint(${i})" aria-label="delete">×</button>
-      </div>`).join('');
 }
 
 // ── Task Editing ───────────────────────────────────────
@@ -1330,16 +1100,6 @@ function cancelTaskEdit(id) {
   const task = state.tasks.find(t => t.id === id);
   if (task) task.editing = false;
   render();
-}
-
-// ── Archive Constraint Delete ──────────────────────────
-function removeArchivedConstraint(index) {
-  state.constraintArchive.splice(index, 1);
-  save(); renderConstraints();
-}
-function clearConstraintArchive() {
-  state.constraintArchive = [];
-  save(); renderConstraints();
 }
 
 // ── Timer ──────────────────────────────────────────────
@@ -1509,7 +1269,7 @@ function toggleDriveAuth() {
   if (driveToken) {
     driveToken = null;
     driveFileId = null;
-    sessionStorage.removeItem('onemore_drive_token');
+    localStorage.removeItem('onemore_drive_token');
     setSyncStatus('', 'not connected');
     showToast('disconnected from drive');
   } else {
@@ -1525,7 +1285,7 @@ function initDriveAuth() {
     callback: async (resp) => {
       if (resp.error) { setSyncStatus('error', 'auth failed'); return; }
       driveToken = resp.access_token;
-      sessionStorage.setItem('onemore_drive_token', driveToken);
+      localStorage.setItem('onemore_drive_token', driveToken);
       setSyncStatus('saving', 'syncing…');
       await syncFromDrive();
     }
@@ -1551,9 +1311,13 @@ async function syncFromDrive() {
       const driveData = await fileResp.json();
       if (driveData && driveData.tasks) {
         state = { ...state, ...driveData };
-        if (!state.constraints) state.constraints = [];
-        if (!state.constraintArchive) state.constraintArchive = [];
-        _save(); render();
+        if (!state.clarityEvents) state.clarityEvents = [];
+        delete state.constraints;
+        delete state.constraintArchive;
+        delete state.clarityWithin;
+        delete state.clarityOutside;
+        delete state.clarityOutsideArchive;
+        _save(); render(); renderClarity();
       }
       setSyncStatus('ok', 'synced');
     } else {
@@ -1623,7 +1387,7 @@ function startSignIn() {
         return;
       }
       driveToken = resp.access_token;
-      sessionStorage.setItem('onemore_drive_token', driveToken);
+      localStorage.setItem('onemore_drive_token', driveToken);
       await syncFromDrive();
       document.getElementById('signinGate').classList.add('hidden');
       document.getElementById('mainApp').style.display = '';
@@ -1637,7 +1401,7 @@ function startSignIn() {
 function signOut() {
   if (driveToken) google.accounts.oauth2.revoke(driveToken, () => {});
   driveToken = null; driveFileId = null;
-  sessionStorage.removeItem('onemore_drive_token');
+  localStorage.removeItem('onemore_drive_token');
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('signinGate').classList.remove('hidden');
 }
@@ -1645,15 +1409,12 @@ function signOut() {
 // ── Keyboard shortcuts ─────────────────────────────────
 document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 document.getElementById('reward-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReward(); });
-document.getElementById('constraint-input').addEventListener('keydown', e => { if (e.key === 'Enter') addConstraint(); });
-document.getElementById('clarity-within-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarity('within'); });
-document.getElementById('clarity-outside-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarity('outside'); });
-document.getElementById('clarity-planb-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarity('planb'); });
+document.getElementById('clarity-event-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarityEvent(); });
 
 // ── Boot ───────────────────────────────────────────────
 load();
 // Try silent token restore
-const savedToken = sessionStorage.getItem('onemore_drive_token');
+const savedToken = localStorage.getItem('onemore_drive_token');
 if (savedToken) {
   driveToken = savedToken;
   syncFromDrive().then(() => {
@@ -1663,7 +1424,7 @@ if (savedToken) {
     render(); renderClarity();
   }).catch(() => {
     driveToken = null;
-    sessionStorage.removeItem('onemore_drive_token');
+    localStorage.removeItem('onemore_drive_token');
     // gate stays visible
   });
 }
