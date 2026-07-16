@@ -445,6 +445,11 @@
   .clarity-cat.issues .clarity-item-text { color: #A8555F; }
   .clarity-cat.worked .clarity-item { background: #F4FAF6; border-color: #C8DFD0; }
   .clarity-cat.worked .clarity-item-text { color: #3D6B4F; }
+  .clarity-cat.links { grid-column: 1 / -1; }
+  .clarity-cat-label.links { color: #4A6C99; }
+  .clarity-cat.links .clarity-item { background: #F0F5FA; border-color: #C6D8E8; }
+  .clarity-cat.links .clarity-item-text { color: #3E5C7A; }
+  .clarity-item-link { color: inherit; text-decoration: underline; text-decoration-color: currentColor; word-break: break-all; }
   .exp-status-row { display: flex; gap: 6px; margin-top: 4px; }
   .exp-status-row button {
     flex: 1; height: 30px; border-radius: var(--radius-sm);
@@ -540,6 +545,7 @@
     <button class="tab-btn active" onclick="switchTab('clarity')">clarity</button>
     <button class="tab-btn" onclick="switchTab('tasks')">tasks</button>
     <button class="tab-btn" onclick="switchTab('experiments')">experiments</button>
+    <button class="tab-btn" onclick="switchTab('literature')">literature</button>
   </div>
 
   <!-- CLARITY TAB -->
@@ -623,6 +629,24 @@
     </div>
   </div><!-- /tab-experiments -->
 
+  <!-- LITERATURE TAB -->
+  <div class="tab-panel" id="tab-literature">
+    <div class="add-row" style="margin-top:0;margin-bottom:8px">
+      <input type="text" id="litnote-link-input" placeholder="paste a link…" />
+    </div>
+    <div class="add-row" style="margin-top:0;margin-bottom:18px">
+      <input type="text" id="litnote-reflection-input" placeholder="quick reflection (optional)…" />
+      <button onclick="addLiteratureNote()">add</button>
+    </div>
+    <div id="literature-list"></div>
+    <button class="archive-toggle" id="literature-archive-toggle" onclick="toggleLiteratureArchive()" style="display:none;margin-top:16px">
+      <em class="chevron">›</em> reviewed
+    </button>
+    <div class="archive-section" id="literature-archive-section" style="display:none">
+      <div id="literature-archive-list"></div>
+    </div>
+  </div><!-- /tab-literature -->
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -678,7 +702,8 @@ let state = {
   tasksSinceLast: 0,
   lastReset: new Date().toDateString(),
   clarityEvents: [],
-  experiments: []
+  experiments: [],
+  literatureNotes: []
 };
 
 function _save() {
@@ -698,6 +723,7 @@ function load() {
       state = { ...state, ...saved };
       if (!state.clarityEvents) state.clarityEvents = [];
       if (!state.experiments) state.experiments = [];
+      if (!state.literatureNotes) state.literatureNotes = [];
       // old schema fields no longer supported — drop them
       delete state.constraints;
       delete state.constraintArchive;
@@ -920,7 +946,7 @@ function addExperiment() {
   if (!val) return;
   state.experiments.push({
     id: newId(), name: val, archived: false, status: 'pending',
-    issues: [], worked: [], nextStep: ''
+    issues: [], worked: [], links: [], nextStep: ''
   });
   input.value = '';
   save(); renderExperiments();
@@ -954,6 +980,7 @@ function toggleExperimentCollapse(id) {
 function addExperimentItem(expId, listName) {
   const exp = state.experiments.find(e => String(e.id) === String(expId));
   if (!exp) return;
+  if (!exp[listName]) exp[listName] = [];
   const input = document.getElementById('exp-input-' + expId + '-' + listName);
   const val = input.value.trim();
   if (!val) return;
@@ -989,7 +1016,7 @@ function promoteNextStep(expId) {
   if (!exp || !exp.nextStep || !exp.nextStep.trim()) return;
   state.experiments.push({
     id: newId(), name: exp.nextStep.trim(), archived: false, status: 'pending',
-    issues: [], worked: [], nextStep: ''
+    issues: [], worked: [], links: [], nextStep: ''
   });
   save(); renderExperiments();
   showToast('new experiment started');
@@ -1005,9 +1032,12 @@ function toggleExperimentsArchive() {
 }
 
 function experimentItemTpl(exp, listName, item) {
+  const content = listName === 'links'
+    ? `<a href="${escHtml(item.text)}" target="_blank" rel="noopener" class="clarity-item-link">${escHtml(item.text)}</a>`
+    : escHtml(item.text);
   return `
     <div class="clarity-item">
-      <div class="clarity-item-text">${escHtml(item.text)}</div>
+      <div class="clarity-item-text">${content}</div>
       <div class="clarity-item-acts">
         <button class="clarity-remove-btn" onclick="removeExperimentItem('${exp.id}','${listName}','${item.id}')" aria-label="remove">×</button>
       </div>
@@ -1016,17 +1046,17 @@ function experimentItemTpl(exp, listName, item) {
 
 function experimentCardTpl(exp) {
   const collapsed = experimentsCollapsed.has(exp.id);
-  const listsHtml = ['issues','worked'].map(listName => `
+  const listsHtml = ['issues','worked','links'].map(listName => `
     <div class="clarity-cat ${listName}">
-      <div class="clarity-cat-label ${listName}">${listName === 'issues' ? 'issues' : 'what worked'}</div>
+      <div class="clarity-cat-label ${listName}">${listName === 'issues' ? 'issues' : listName === 'worked' ? 'what worked' : 'links'}</div>
       <div class="add-row mini">
-        <input type="text" id="exp-input-${exp.id}-${listName}" placeholder=""
+        <input type="text" id="exp-input-${exp.id}-${listName}" placeholder="${listName === 'links' ? 'paste a link…' : ''}"
           onclick="event.stopPropagation()"
           onkeydown="if(event.key==='Enter')addExperimentItem('${exp.id}','${listName}')" />
         <button onclick="event.stopPropagation();addExperimentItem('${exp.id}','${listName}')">add</button>
       </div>
       <div class="clarity-list" onclick="event.stopPropagation()">
-        ${exp[listName].length ? exp[listName].map(item => experimentItemTpl(exp, listName, item)).join('') : '<div class="empty">nothing here right now</div>'}
+        ${(exp[listName]||[]).length ? (exp[listName]||[]).map(item => experimentItemTpl(exp, listName, item)).join('') : '<div class="empty">nothing here right now</div>'}
       </div>
     </div>`).join('');
 
@@ -1082,6 +1112,86 @@ function renderExperiments() {
         <span class="archive-item-text" style="flex:1">${escHtml(exp.name)}</span>
         <button class="clarity-remove-btn" onclick="unarchiveExperiment('${exp.id}')" title="restore">↑</button>
         <button class="clarity-remove-btn" onclick="removeExperiment('${exp.id}')" title="delete">×</button>
+      </div>`).join('');
+  } else {
+    toggle.style.display = 'none';
+  }
+}
+
+// ── Literature Notes ─────────────────────────────────────
+function addLiteratureNote() {
+  const linkInput = document.getElementById('litnote-link-input');
+  const reflInput = document.getElementById('litnote-reflection-input');
+  const link = linkInput.value.trim();
+  const reflection = reflInput.value.trim();
+  if (!link) return;
+  state.literatureNotes.push({
+    id: newId(), link, reflection, reviewed: false
+  });
+  linkInput.value = '';
+  reflInput.value = '';
+  save(); renderLiteratureNotes();
+}
+
+function removeLiteratureNote(id) {
+  state.literatureNotes = state.literatureNotes.filter(n => String(n.id) !== String(id));
+  save(); renderLiteratureNotes();
+}
+
+function markLiteratureReviewed(id) {
+  const note = state.literatureNotes.find(n => String(n.id) === String(id));
+  if (!note) return;
+  note.reviewed = true;
+  save(); renderLiteratureNotes();
+}
+
+function unmarkLiteratureReviewed(id) {
+  const note = state.literatureNotes.find(n => String(n.id) === String(id));
+  if (!note) return;
+  note.reviewed = false;
+  save(); renderLiteratureNotes();
+}
+
+function toggleLiteratureArchive() {
+  const sec = document.getElementById('literature-archive-section');
+  const toggle = document.getElementById('literature-archive-toggle');
+  const chevron = toggle.querySelector('.chevron');
+  const isOpen = sec.style.display !== 'none';
+  sec.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function literatureNoteTpl(note) {
+  return `
+    <div class="clarity-item" style="align-items:center">
+      <div class="clarity-item-text">
+        <a href="${escHtml(note.link)}" target="_blank" rel="noopener" class="clarity-item-link">${escHtml(note.link)}</a>
+        ${note.reflection ? `<div style="margin-top:4px;font-size:12px;color:var(--muted)">${escHtml(note.reflection)}</div>` : ''}
+      </div>
+      <div class="clarity-item-acts">
+        <button class="clarity-remove-btn" onclick="markLiteratureReviewed('${note.id}')" title="mark reviewed">✓</button>
+        <button class="clarity-remove-btn" onclick="removeLiteratureNote('${note.id}')" aria-label="remove">×</button>
+      </div>
+    </div>`;
+}
+
+function renderLiteratureNotes() {
+  const list = document.getElementById('literature-list');
+  const active = state.literatureNotes.filter(n => !n.reviewed);
+  list.innerHTML = active.length
+    ? active.map(literatureNoteTpl).join('')
+    : '<div class="empty">nothing captured yet</div>';
+
+  const toggle = document.getElementById('literature-archive-toggle');
+  const archiveList = document.getElementById('literature-archive-list');
+  const reviewed = state.literatureNotes.filter(n => n.reviewed);
+  if (reviewed.length > 0) {
+    toggle.style.display = 'block';
+    archiveList.innerHTML = reviewed.map(note => `
+      <div class="archive-item" style="display:flex;align-items:center;gap:8px">
+        <span class="archive-item-text" style="flex:1">${escHtml(note.link)}</span>
+        <button class="clarity-remove-btn" onclick="unmarkLiteratureReviewed('${note.id}')" title="restore">↑</button>
+        <button class="clarity-remove-btn" onclick="removeLiteratureNote('${note.id}')" title="delete">×</button>
       </div>`).join('');
   } else {
     toggle.style.display = 'none';
@@ -1310,6 +1420,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'clarity') renderClarity();
   if (name === 'experiments') renderExperiments();
+  if (name === 'literature') renderLiteratureNotes();
 }
 
 // ── Task Editing ───────────────────────────────────────
@@ -1546,6 +1657,7 @@ async function syncFromDrive() {
         state = { ...state, ...driveData };
         if (!state.clarityEvents) state.clarityEvents = [];
         if (!state.experiments) state.experiments = [];
+        if (!state.literatureNotes) state.literatureNotes = [];
         delete state.constraints;
         delete state.constraintArchive;
         delete state.clarityWithin;
@@ -1645,6 +1757,8 @@ document.getElementById('task-input').addEventListener('keydown', e => { if (e.k
 document.getElementById('reward-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReward(); });
 document.getElementById('clarity-event-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarityEvent(); });
 document.getElementById('experiment-input').addEventListener('keydown', e => { if (e.key === 'Enter') addExperiment(); });
+document.getElementById('litnote-link-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('litnote-reflection-input').focus(); });
+document.getElementById('litnote-reflection-input').addEventListener('keydown', e => { if (e.key === 'Enter') addLiteratureNote(); });
 
 // ── Boot ───────────────────────────────────────────────
 load();
