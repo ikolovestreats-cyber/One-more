@@ -505,6 +505,9 @@
   .chain-status-dot.rejected { background: #C0392B; }
   .chain-status-dot.pending { background: var(--medium); }
   .chain-detail { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .capture-archive-group { margin-bottom: 14px; }
+  .capture-archive-group:last-child { margin-bottom: 0; }
+  .capture-archive-group-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
 
   .archive-toggle {
     display: flex; align-items: center; gap: 6px;
@@ -1011,7 +1014,7 @@ function renderClarity() {
 }
 
 // ── Experiments ─────────────────────────────────────────
-let chainOpenLink = {};        // rootId -> currently open link id
+let openExperimentId = null;   // only one experiment's detail open at a time, tab-wide
 let expandedBuckets = new Set();
 let showCompletedExperiments = false;
 
@@ -1112,12 +1115,8 @@ function toggleBucketSection(name) {
   renderExperiments();
 }
 
-function toggleChainLink(rootId, linkId) {
-  if (String(chainOpenLink[rootId]) === String(linkId)) {
-    delete chainOpenLink[rootId];
-  } else {
-    chainOpenLink[rootId] = linkId;
-  }
+function toggleChainLink(linkId) {
+  openExperimentId = (String(openExperimentId) === String(linkId)) ? null : linkId;
   renderExperiments();
 }
 
@@ -1129,7 +1128,7 @@ function saveNextStep(expId) {
   save();
 }
 
-function promoteNextStep(expId, rootId) {
+function promoteNextStep(expId) {
   const exp = state.experiments.find(e => String(e.id) === String(expId));
   if (!exp || !exp.nextStep || !exp.nextStep.trim()) return;
   const newExp = {
@@ -1137,7 +1136,7 @@ function promoteNextStep(expId, rootId) {
     issues: [], worked: [], links: [], nextStep: '', bucket: exp.bucket || '', parentId: exp.id
   };
   state.experiments.push(newExp);
-  chainOpenLink[rootId] = newExp.id;
+  openExperimentId = newExp.id;
   save(); renderExperiments();
   showToast('new experiment started');
 }
@@ -1189,7 +1188,7 @@ function chainIsCompleted(chain) {
   return tip.status !== 'pending' || tip.archived;
 }
 
-function experimentDetailTpl(exp, isRoot, rootId) {
+function experimentDetailTpl(exp, isRoot) {
   const listsHtml = ['issues','worked','links'].map(listName => `
     <div class="clarity-cat ${listName}">
       <div class="clarity-cat-label ${listName}">${listName === 'issues' ? 'issues' : listName === 'worked' ? 'what worked' : 'links'}</div>
@@ -1226,8 +1225,8 @@ function experimentDetailTpl(exp, isRoot, rootId) {
         <div class="add-row mini">
           <input type="text" id="exp-next-${exp.id}" placeholder="what's next…" value="${escHtml(exp.nextStep || '')}"
             onchange="saveNextStep('${exp.id}')"
-            onkeydown="if(event.key==='Enter'){saveNextStep('${exp.id}');promoteNextStep('${exp.id}','${rootId}')}" />
-          <button onclick="saveNextStep('${exp.id}');promoteNextStep('${exp.id}','${rootId}')">→ new experiment</button>
+            onkeydown="if(event.key==='Enter'){saveNextStep('${exp.id}');promoteNextStep('${exp.id}')}" />
+          <button onclick="saveNextStep('${exp.id}');promoteNextStep('${exp.id}')">→ new experiment</button>
         </div>
       </div>
     </div>`;
@@ -1235,19 +1234,18 @@ function experimentDetailTpl(exp, isRoot, rootId) {
 
 function experimentChainTpl(chain) {
   const root = chain[0];
-  const openId = chainOpenLink[root.id];
-  const openExp = chain.find(e => String(e.id) === String(openId));
+  const openExp = chain.find(e => String(e.id) === String(openExperimentId));
 
   const trail = chain.map((link, i) => `
     ${i > 0 ? '<span class="chain-arrow">→</span>' : ''}
-    <span class="chain-pill ${String(link.id)===String(openId)?'open':''}" onclick="toggleChainLink('${root.id}','${link.id}')">
+    <span class="chain-pill ${String(link.id)===String(openExperimentId)?'open':''}" onclick="toggleChainLink('${link.id}')">
       <span class="chain-status-dot ${link.status}"></span>${escHtml(link.name)}
     </span>`).join('');
 
   return `
     <div class="chain-row">
       <div class="chain-trail">${trail}</div>
-      ${openExp ? experimentDetailTpl(openExp, String(openExp.id) === String(root.id), root.id) : ''}
+      ${openExp ? experimentDetailTpl(openExp, String(openExp.id) === String(root.id)) : ''}
     </div>`;
 }
 
@@ -1378,12 +1376,20 @@ function renderLiteratureNotes() {
   const reviewed = state.literatureNotes.filter(n => n.reviewed);
   if (reviewed.length > 0) {
     toggle.style.display = 'block';
-    archiveList.innerHTML = reviewed.map(note => `
+    const reviewedItemTpl = note => `
       <div class="archive-item" style="display:flex;align-items:center;gap:8px">
         <span class="archive-item-text" style="flex:1">${escHtml(note.link || note.reflection)}</span>
         <button class="clarity-remove-btn" onclick="unmarkLiteratureReviewed('${note.id}')" title="restore">↑</button>
         <button class="clarity-remove-btn" onclick="removeLiteratureNote('${note.id}')" title="delete">×</button>
-      </div>`).join('');
+      </div>`;
+    const groupTpl = (label, items) => items.length ? `
+      <div class="capture-archive-group">
+        <div class="capture-archive-group-label">${label}</div>
+        ${items.map(reviewedItemTpl).join('')}
+      </div>` : '';
+    const fleetingReviewed = reviewed.filter(n => !n.link);
+    const literatureReviewed = reviewed.filter(n => n.link);
+    archiveList.innerHTML = groupTpl('fleeting', fleetingReviewed) + groupTpl('literature', literatureReviewed);
   } else {
     toggle.style.display = 'none';
   }
