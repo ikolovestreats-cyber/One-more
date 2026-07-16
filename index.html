@@ -71,6 +71,7 @@
     color: var(--muted); cursor: pointer; transition: all 0.15s;
   }
   .backup-btn:hover { border-color: var(--accent-muted); color: var(--accent); background: var(--accent-light); }
+  .backup-btn-active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
 
   /* SYNC */
   .sync-btn {
@@ -504,6 +505,7 @@
   .chain-status-dot.approved { background: var(--success); }
   .chain-status-dot.rejected { background: #C0392B; }
   .chain-status-dot.pending { background: var(--medium); }
+  .chain-bucket-tag { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); flex-shrink: 0; }
   .chain-detail { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
   .capture-archive-group { margin-bottom: 14px; }
   .capture-archive-group:last-child { margin-bottom: 0; }
@@ -664,9 +666,11 @@
       <input type="text" id="experiment-input" placeholder="add an experiment, e.g. no caffeine after 2pm" />
       <button onclick="addExperiment()">add</button>
     </div>
-    <div class="add-row" style="margin-top:0;margin-bottom:8px">
+    <div class="add-row" style="margin-top:0;margin-bottom:8px;flex-wrap:wrap">
       <button class="backup-btn" onclick="toggleBucketManager()">manage buckets</button>
-      <button class="backup-btn" id="show-completed-btn" onclick="toggleShowCompletedExperiments()">show completed</button>
+      <button class="backup-btn" id="show-completed-btn" onclick="toggleShowCompletedExperiments()">completed: hidden</button>
+      <button class="backup-btn" id="view-approved-btn" onclick="setExperimentsViewMode('approved')">approved</button>
+      <button class="backup-btn" id="view-rejected-btn" onclick="setExperimentsViewMode('rejected')">rejected</button>
     </div>
     <div id="bucket-manager" style="display:none;margin-bottom:16px">
       <div class="reward-pills" id="bucket-manager-list"></div>
@@ -1017,6 +1021,7 @@ function renderClarity() {
 let openExperimentId = null;   // only one experiment's detail open at a time, tab-wide
 let expandedBuckets = new Set();
 let showCompletedExperiments = false;
+let experimentsViewMode = 'buckets';   // 'buckets' | 'approved' | 'rejected'
 
 function addExperiment() {
   const input = document.getElementById('experiment-input');
@@ -1105,7 +1110,16 @@ function deleteExperimentBucket(name) {
 function toggleShowCompletedExperiments() {
   showCompletedExperiments = !showCompletedExperiments;
   const btn = document.getElementById('show-completed-btn');
-  if (btn) btn.textContent = showCompletedExperiments ? 'hide completed' : 'show completed';
+  if (btn) {
+    btn.textContent = showCompletedExperiments ? 'completed: shown' : 'completed: hidden';
+    btn.classList.toggle('backup-btn-active', showCompletedExperiments);
+  }
+  renderExperiments();
+}
+
+function setExperimentsViewMode(mode) {
+  experimentsViewMode = (experimentsViewMode === mode) ? 'buckets' : mode;
+  openExperimentId = null;
   renderExperiments();
 }
 
@@ -1249,6 +1263,20 @@ function experimentChainTpl(chain) {
     </div>`;
 }
 
+function experimentFlatItemTpl(exp) {
+  const isOpen = String(exp.id) === String(openExperimentId);
+  return `
+    <div class="chain-row">
+      <div class="chain-trail">
+        <span class="chain-pill ${isOpen ? 'open' : ''}" onclick="toggleChainLink('${exp.id}')">
+          <span class="chain-status-dot ${exp.status}"></span>${escHtml(exp.name)}
+        </span>
+        <span class="chain-bucket-tag">${exp.bucket ? escHtml(exp.bucket) : 'unsorted'}</span>
+      </div>
+      ${isOpen ? experimentDetailTpl(exp, true) : ''}
+    </div>`;
+}
+
 function renderExperiments() {
   const bucketMgrList = document.getElementById('bucket-manager-list');
   if (bucketMgrList) {
@@ -1260,6 +1288,23 @@ function renderExperiments() {
             <button onclick="deleteExperimentBucket('${escJsAttr(b)}')" title="delete">×</button>
           </div>`).join('')
       : '<div class="empty">no buckets yet — create one from any experiment\'s dropdown</div>';
+  }
+
+  const showCompletedBtn = document.getElementById('show-completed-btn');
+  const approvedBtn = document.getElementById('view-approved-btn');
+  const rejectedBtn = document.getElementById('view-rejected-btn');
+  if (showCompletedBtn) showCompletedBtn.style.display = experimentsViewMode === 'buckets' ? '' : 'none';
+  if (approvedBtn) approvedBtn.classList.toggle('backup-btn-active', experimentsViewMode === 'approved');
+  if (rejectedBtn) rejectedBtn.classList.toggle('backup-btn-active', experimentsViewMode === 'rejected');
+
+  const container = document.getElementById('experiments-buckets');
+
+  if (experimentsViewMode === 'approved' || experimentsViewMode === 'rejected') {
+    const items = state.experiments.filter(e => e.status === experimentsViewMode);
+    container.innerHTML = items.length
+      ? items.map(experimentFlatItemTpl).join('')
+      : `<div class="empty">no ${experimentsViewMode} experiments yet</div>`;
+    return;
   }
 
   const chains = buildExperimentChains();
@@ -1278,7 +1323,7 @@ function renderExperiments() {
     const expanded = expandedBuckets.has(b);
     const body = visibleChains.length
       ? visibleChains.map(experimentChainTpl).join('')
-      : '<div class="empty">nothing active — try "show completed"</div>';
+      : '<div class="empty">nothing active — try "completed: shown"</div>';
     return `
       <div class="bucket-section">
         <div class="bucket-section-header" onclick="toggleBucketSection('${escJsAttr(b)}')">
@@ -1290,7 +1335,6 @@ function renderExperiments() {
       </div>`;
   }).join('');
 
-  const container = document.getElementById('experiments-buckets');
   container.innerHTML = sections || '<div class="empty">no experiments yet — add one above</div>';
 }
 
