@@ -507,9 +507,6 @@
   .chain-status-dot.pending { background: var(--medium); }
   .chain-bucket-tag { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); flex-shrink: 0; }
   .chain-detail { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  .capture-archive-group { margin-bottom: 14px; }
-  .capture-archive-group:last-child { margin-bottom: 0; }
-  .capture-archive-group-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
 
   .archive-toggle {
     display: flex; align-items: center; gap: 6px;
@@ -666,11 +663,14 @@
       <input type="text" id="experiment-input" placeholder="add an experiment, e.g. no caffeine after 2pm" />
       <button onclick="addExperiment()">add</button>
     </div>
-    <div class="add-row" style="margin-top:0;margin-bottom:8px;flex-wrap:wrap">
+    <div class="add-row" style="margin-top:0;margin-bottom:8px">
       <button class="backup-btn" onclick="toggleBucketManager()">manage buckets</button>
-      <button class="backup-btn" id="show-completed-btn" onclick="toggleShowCompletedExperiments()">completed: hidden</button>
-      <button class="backup-btn" id="view-approved-btn" onclick="setExperimentsViewMode('approved')">approved</button>
-      <button class="backup-btn" id="view-rejected-btn" onclick="setExperimentsViewMode('rejected')">rejected</button>
+      <select id="experiments-view-select" class="bucket-select" style="max-width:none" onchange="setExperimentsViewMode(this.value)">
+        <option value="active">view: active</option>
+        <option value="all">view: all</option>
+        <option value="approved">view: approved</option>
+        <option value="rejected">view: rejected</option>
+      </select>
     </div>
     <div id="bucket-manager" style="display:none;margin-bottom:16px">
       <div class="reward-pills" id="bucket-manager-list"></div>
@@ -1020,8 +1020,14 @@ function renderClarity() {
 // ── Experiments ─────────────────────────────────────────
 let openExperimentId = null;   // only one experiment's detail open at a time, tab-wide
 let expandedBuckets = new Set();
-let showCompletedExperiments = false;
-let experimentsViewMode = 'buckets';   // 'buckets' | 'approved' | 'rejected'
+let captureGroupsExpanded = new Set(['active-fleeting', 'active-literature', 'reviewed-fleeting', 'reviewed-literature']);
+
+function toggleCaptureGroup(key) {
+  if (captureGroupsExpanded.has(key)) captureGroupsExpanded.delete(key);
+  else captureGroupsExpanded.add(key);
+  renderLiteratureNotes();
+}
+let experimentsViewMode = 'active';   // 'all' | 'active' | 'approved' | 'rejected'
 
 function addExperiment() {
   const input = document.getElementById('experiment-input');
@@ -1107,18 +1113,8 @@ function deleteExperimentBucket(name) {
   save(); renderExperiments();
 }
 
-function toggleShowCompletedExperiments() {
-  showCompletedExperiments = !showCompletedExperiments;
-  const btn = document.getElementById('show-completed-btn');
-  if (btn) {
-    btn.textContent = showCompletedExperiments ? 'completed: shown' : 'completed: hidden';
-    btn.classList.toggle('backup-btn-active', showCompletedExperiments);
-  }
-  renderExperiments();
-}
-
 function setExperimentsViewMode(mode) {
-  experimentsViewMode = (experimentsViewMode === mode) ? 'buckets' : mode;
+  experimentsViewMode = mode;
   openExperimentId = null;
   renderExperiments();
 }
@@ -1290,12 +1286,8 @@ function renderExperiments() {
       : '<div class="empty">no buckets yet — create one from any experiment\'s dropdown</div>';
   }
 
-  const showCompletedBtn = document.getElementById('show-completed-btn');
-  const approvedBtn = document.getElementById('view-approved-btn');
-  const rejectedBtn = document.getElementById('view-rejected-btn');
-  if (showCompletedBtn) showCompletedBtn.style.display = experimentsViewMode === 'buckets' ? '' : 'none';
-  if (approvedBtn) approvedBtn.classList.toggle('backup-btn-active', experimentsViewMode === 'approved');
-  if (rejectedBtn) rejectedBtn.classList.toggle('backup-btn-active', experimentsViewMode === 'rejected');
+  const viewSelect = document.getElementById('experiments-view-select');
+  if (viewSelect) viewSelect.value = experimentsViewMode;
 
   const container = document.getElementById('experiments-buckets');
 
@@ -1319,11 +1311,11 @@ function renderExperiments() {
   const sections = order.filter(b => groups[b] && groups[b].length).map(b => {
     const label = b === '' ? 'unsorted' : b;
     const allChains = groups[b];
-    const visibleChains = allChains.filter(c => showCompletedExperiments || !chainIsCompleted(c));
+    const visibleChains = experimentsViewMode === 'all' ? allChains : allChains.filter(c => !chainIsCompleted(c));
     const expanded = expandedBuckets.has(b);
     const body = visibleChains.length
       ? visibleChains.map(experimentChainTpl).join('')
-      : '<div class="empty">nothing active — try "completed: shown"</div>';
+      : '<div class="empty">nothing here — try "view: all"</div>';
     return `
       <div class="bucket-section">
         <div class="bucket-section-header" onclick="toggleBucketSection('${escJsAttr(b)}')">
@@ -1409,17 +1401,27 @@ function literatureNoteTpl(note) {
 }
 
 function renderLiteratureNotes() {
+  const captureGroupTpl = (key, label, items, itemTpl) => {
+    if (!items.length) return '';
+    const expanded = captureGroupsExpanded.has(key);
+    return `
+      <div class="bucket-section">
+        <div class="bucket-section-header" onclick="toggleCaptureGroup('${key}')">
+          <em class="chevron" style="transform:rotate(${expanded ? 90 : 0}deg)">›</em>
+          <span class="bucket-section-title">${label}</span>
+          <span class="bucket-section-count">${items.length}</span>
+        </div>
+        ${expanded ? items.map(itemTpl).join('') : ''}
+      </div>`;
+  };
+
   const list = document.getElementById('literature-list');
   const active = state.literatureNotes.filter(n => !n.reviewed);
   if (active.length) {
-    const activeGroupTpl = (label, items) => items.length ? `
-      <div class="capture-archive-group">
-        <div class="capture-archive-group-label">${label}</div>
-        ${items.map(literatureNoteTpl).join('')}
-      </div>` : '';
     const fleetingActive = active.filter(n => !n.link);
     const literatureActive = active.filter(n => n.link);
-    list.innerHTML = activeGroupTpl('fleeting', fleetingActive) + activeGroupTpl('literature', literatureActive);
+    list.innerHTML = captureGroupTpl('active-fleeting', 'fleeting', fleetingActive, literatureNoteTpl)
+      + captureGroupTpl('active-literature', 'literature', literatureActive, literatureNoteTpl);
   } else {
     list.innerHTML = '<div class="empty">nothing captured yet</div>';
   }
@@ -1435,14 +1437,10 @@ function renderLiteratureNotes() {
         <button class="clarity-remove-btn" onclick="unmarkLiteratureReviewed('${note.id}')" title="restore">↑</button>
         <button class="clarity-remove-btn" onclick="removeLiteratureNote('${note.id}')" title="delete">×</button>
       </div>`;
-    const groupTpl = (label, items) => items.length ? `
-      <div class="capture-archive-group">
-        <div class="capture-archive-group-label">${label}</div>
-        ${items.map(reviewedItemTpl).join('')}
-      </div>` : '';
     const fleetingReviewed = reviewed.filter(n => !n.link);
     const literatureReviewed = reviewed.filter(n => n.link);
-    archiveList.innerHTML = groupTpl('fleeting', fleetingReviewed) + groupTpl('literature', literatureReviewed);
+    archiveList.innerHTML = captureGroupTpl('reviewed-fleeting', 'fleeting', fleetingReviewed, reviewedItemTpl)
+      + captureGroupTpl('reviewed-literature', 'literature', literatureReviewed, reviewedItemTpl);
   } else {
     toggle.style.display = 'none';
   }
