@@ -1367,9 +1367,18 @@ function literatureNoteTpl(note) {
 function renderLiteratureNotes() {
   const list = document.getElementById('literature-list');
   const active = state.literatureNotes.filter(n => !n.reviewed);
-  list.innerHTML = active.length
-    ? active.map(literatureNoteTpl).join('')
-    : '<div class="empty">nothing captured yet</div>';
+  if (active.length) {
+    const activeGroupTpl = (label, items) => items.length ? `
+      <div class="capture-archive-group">
+        <div class="capture-archive-group-label">${label}</div>
+        ${items.map(literatureNoteTpl).join('')}
+      </div>` : '';
+    const fleetingActive = active.filter(n => !n.link);
+    const literatureActive = active.filter(n => n.link);
+    list.innerHTML = activeGroupTpl('fleeting', fleetingActive) + activeGroupTpl('literature', literatureActive);
+  } else {
+    list.innerHTML = '<div class="empty">nothing captured yet</div>';
+  }
 
   const toggle = document.getElementById('literature-archive-toggle');
   const archiveList = document.getElementById('literature-archive-list');
