@@ -173,6 +173,14 @@
   .task-item:hover .edit-btn { opacity: 1; }
   .task-item.done .remove-btn { display: none; }
   .task-item.done .edit-btn { display: none; }
+  .archive-btn {
+    width: 22px; height: 22px; border-radius: 50%; border: none; background: none;
+    color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .task-item:hover .archive-btn { opacity: 1; }
+  .task-item.done .archive-btn { opacity: 1; }
   .task-edit-input {
     flex: 1; font-family: 'DM Sans', sans-serif; font-size: 14px;
     background: var(--surface); border: 1px solid var(--accent-muted);
@@ -450,6 +458,12 @@
   .clarity-cat.links .clarity-item { background: #F0F5FA; border-color: #C6D8E8; }
   .clarity-cat.links .clarity-item-text { color: #3E5C7A; }
   .clarity-item-link { color: inherit; text-decoration: underline; text-decoration-color: currentColor; word-break: break-all; }
+  .bucket-select {
+    font-family: 'DM Mono', monospace; font-size: 9px; text-transform: none;
+    padding: 3px 6px; border-radius: 99px; border: 1px solid var(--border);
+    background: var(--light-bg); color: var(--muted); cursor: pointer; flex-shrink: 0;
+    max-width: 110px;
+  }
   .exp-status-row { display: flex; gap: 6px; margin-top: 4px; }
   .exp-status-row button {
     flex: 1; height: 30px; border-radius: var(--radius-sm);
@@ -545,7 +559,8 @@
     <button class="tab-btn active" onclick="switchTab('clarity')">clarity</button>
     <button class="tab-btn" onclick="switchTab('tasks')">tasks</button>
     <button class="tab-btn" onclick="switchTab('experiments')">experiments</button>
-    <button class="tab-btn" onclick="switchTab('literature')">literature</button>
+    <button class="tab-btn" onclick="switchTab('capture')">capture</button>
+    <button class="tab-btn" onclick="switchTab('extra')">extra</button>
   </div>
 
   <!-- CLARITY TAB -->
@@ -616,6 +631,11 @@
 
   <!-- EXPERIMENTS TAB -->
   <div class="tab-panel" id="tab-experiments">
+    <div class="add-row" style="margin-top:0;margin-bottom:8px">
+      <select id="exp-bucket-filter" class="bucket-select" style="max-width:none" onchange="setExperimentBucketFilter(this.value)">
+        <option value="">all buckets</option>
+      </select>
+    </div>
     <div class="add-row" style="margin-top:0;margin-bottom:18px">
       <input type="text" id="experiment-input" placeholder="add an experiment, e.g. no caffeine after 2pm" />
       <button onclick="addExperiment()">add</button>
@@ -629,8 +649,12 @@
     </div>
   </div><!-- /tab-experiments -->
 
-  <!-- LITERATURE TAB -->
-  <div class="tab-panel" id="tab-literature">
+  <!-- CAPTURE TAB -->
+  <div class="tab-panel" id="tab-capture">
+    <div class="add-row" style="margin-top:0;margin-bottom:18px">
+      <input type="text" id="fleeting-input" placeholder="a fleeting thought…" />
+      <button onclick="addFleetingNote()">add</button>
+    </div>
     <div class="add-row" style="margin-top:0;margin-bottom:8px">
       <input type="text" id="litnote-link-input" placeholder="paste a link…" />
     </div>
@@ -645,7 +669,22 @@
     <div class="archive-section" id="literature-archive-section" style="display:none">
       <div id="literature-archive-list"></div>
     </div>
-  </div><!-- /tab-literature -->
+  </div><!-- /tab-capture -->
+
+  <!-- EXTRA TAB -->
+  <div class="tab-panel" id="tab-extra">
+    <div class="task-list" id="extra-list"></div>
+    <div class="add-row" style="margin-top:8px">
+      <input type="text" id="extra-input" placeholder="something that's been lingering…" />
+      <button onclick="addExtraTask()">add</button>
+    </div>
+    <button class="archive-toggle" id="extra-archive-toggle" onclick="toggleExtraArchive()" style="display:none;margin-top:16px">
+      <em class="chevron">›</em> archived
+    </button>
+    <div class="archive-section" id="extra-archive-section" style="display:none">
+      <div id="extra-archive-list"></div>
+    </div>
+  </div><!-- /tab-extra -->
 
 </div>
 
@@ -703,7 +742,9 @@ let state = {
   lastReset: new Date().toDateString(),
   clarityEvents: [],
   experiments: [],
-  literatureNotes: []
+  literatureNotes: [],
+  extraTasks: [],
+  experimentBuckets: []
 };
 
 function _save() {
@@ -724,6 +765,8 @@ function load() {
       if (!state.clarityEvents) state.clarityEvents = [];
       if (!state.experiments) state.experiments = [];
       if (!state.literatureNotes) state.literatureNotes = [];
+      if (!state.extraTasks) state.extraTasks = [];
+      if (!state.experimentBuckets) state.experimentBuckets = [];
       // old schema fields no longer supported — drop them
       delete state.constraints;
       delete state.constraintArchive;
@@ -946,7 +989,7 @@ function addExperiment() {
   if (!val) return;
   state.experiments.push({
     id: newId(), name: val, archived: false, status: 'pending',
-    issues: [], worked: [], links: [], nextStep: ''
+    issues: [], worked: [], links: [], nextStep: '', bucket: ''
   });
   input.value = '';
   save(); renderExperiments();
@@ -1003,6 +1046,26 @@ function setExperimentStatus(expId, status) {
   save(); renderExperiments();
 }
 
+function setExperimentBucket(expId, value) {
+  const exp = state.experiments.find(e => String(e.id) === String(expId));
+  if (!exp) return;
+  if (value === '__new__') {
+    const name = (prompt('New bucket name:') || '').trim();
+    if (!name) { renderExperiments(); return; }
+    if (!state.experimentBuckets.includes(name)) state.experimentBuckets.push(name);
+    exp.bucket = name;
+  } else {
+    exp.bucket = value;
+  }
+  save(); renderExperiments();
+}
+
+let experimentBucketFilter = '';
+function setExperimentBucketFilter(value) {
+  experimentBucketFilter = value;
+  renderExperiments();
+}
+
 function saveNextStep(expId) {
   const exp = state.experiments.find(e => String(e.id) === String(expId));
   if (!exp) return;
@@ -1016,7 +1079,7 @@ function promoteNextStep(expId) {
   if (!exp || !exp.nextStep || !exp.nextStep.trim()) return;
   state.experiments.push({
     id: newId(), name: exp.nextStep.trim(), archived: false, status: 'pending',
-    issues: [], worked: [], links: [], nextStep: ''
+    issues: [], worked: [], links: [], nextStep: '', bucket: ''
   });
   save(); renderExperiments();
   showToast('new experiment started');
@@ -1044,6 +1107,18 @@ function experimentItemTpl(exp, listName, item) {
     </div>`;
 }
 
+function bucketSelectTpl(exp) {
+  const options = state.experimentBuckets.map(b =>
+    `<option value="${escHtml(b)}" ${exp.bucket === b ? 'selected' : ''}>${escHtml(b)}</option>`
+  ).join('');
+  return `
+    <select class="bucket-select" onclick="event.stopPropagation()" onchange="event.stopPropagation();setExperimentBucket('${exp.id}', this.value)">
+      <option value="" ${!exp.bucket ? 'selected' : ''}>no bucket</option>
+      ${options}
+      <option value="__new__">+ new bucket…</option>
+    </select>`;
+}
+
 function experimentCardTpl(exp) {
   const collapsed = experimentsCollapsed.has(exp.id);
   const listsHtml = ['issues','worked','links'].map(listName => `
@@ -1067,6 +1142,7 @@ function experimentCardTpl(exp) {
           <em class="clarity-event-chevron" style="transform:rotate(${collapsed ? '0' : '90'}deg)">›</em>
           <span class="clarity-event-name">${escHtml(exp.name)}</span>
           <span class="exp-status-badge ${exp.status}">${exp.status}</span>
+          ${bucketSelectTpl(exp)}
         </div>
         <div class="clarity-event-acts">
           <button class="c-btn" onclick="event.stopPropagation();archiveExperiment('${exp.id}')" title="archive">↓</button>
@@ -1096,8 +1172,17 @@ function experimentCardTpl(exp) {
 }
 
 function renderExperiments() {
+  const filterSel = document.getElementById('exp-bucket-filter');
+  if (filterSel) {
+    const bucketOptions = state.experimentBuckets.map(b =>
+      `<option value="${escHtml(b)}" ${experimentBucketFilter === b ? 'selected' : ''}>${escHtml(b)}</option>`
+    ).join('');
+    filterSel.innerHTML = `<option value="">all buckets</option>${bucketOptions}`;
+    filterSel.value = experimentBucketFilter;
+  }
+
   const list = document.getElementById('experiments-list');
-  const active = state.experiments.filter(e => !e.archived);
+  const active = state.experiments.filter(e => !e.archived && (!experimentBucketFilter || e.bucket === experimentBucketFilter));
   list.innerHTML = active.length
     ? active.map(experimentCardTpl).join('')
     : '<div class="empty">no experiments yet — add one above</div>';
@@ -1119,6 +1204,17 @@ function renderExperiments() {
 }
 
 // ── Literature Notes ─────────────────────────────────────
+function addFleetingNote() {
+  const input = document.getElementById('fleeting-input');
+  const val = input.value.trim();
+  if (!val) return;
+  state.literatureNotes.push({
+    id: newId(), link: '', reflection: val, reviewed: false
+  });
+  input.value = '';
+  save(); renderLiteratureNotes();
+}
+
 function addLiteratureNote() {
   const linkInput = document.getElementById('litnote-link-input');
   const reflInput = document.getElementById('litnote-reflection-input');
@@ -1162,12 +1258,13 @@ function toggleLiteratureArchive() {
 }
 
 function literatureNoteTpl(note) {
+  const body = note.link
+    ? `<a href="${escHtml(note.link)}" target="_blank" rel="noopener" class="clarity-item-link">${escHtml(note.link)}</a>
+       ${note.reflection ? `<div style="margin-top:4px;font-size:12px;color:var(--muted)">${escHtml(note.reflection)}</div>` : ''}`
+    : `${escHtml(note.reflection)}`;
   return `
     <div class="clarity-item" style="align-items:center">
-      <div class="clarity-item-text">
-        <a href="${escHtml(note.link)}" target="_blank" rel="noopener" class="clarity-item-link">${escHtml(note.link)}</a>
-        ${note.reflection ? `<div style="margin-top:4px;font-size:12px;color:var(--muted)">${escHtml(note.reflection)}</div>` : ''}
-      </div>
+      <div class="clarity-item-text">${body}</div>
       <div class="clarity-item-acts">
         <button class="clarity-remove-btn" onclick="markLiteratureReviewed('${note.id}')" title="mark reviewed">✓</button>
         <button class="clarity-remove-btn" onclick="removeLiteratureNote('${note.id}')" aria-label="remove">×</button>
@@ -1189,9 +1286,131 @@ function renderLiteratureNotes() {
     toggle.style.display = 'block';
     archiveList.innerHTML = reviewed.map(note => `
       <div class="archive-item" style="display:flex;align-items:center;gap:8px">
-        <span class="archive-item-text" style="flex:1">${escHtml(note.link)}</span>
+        <span class="archive-item-text" style="flex:1">${escHtml(note.link || note.reflection)}</span>
         <button class="clarity-remove-btn" onclick="unmarkLiteratureReviewed('${note.id}')" title="restore">↑</button>
         <button class="clarity-remove-btn" onclick="removeLiteratureNote('${note.id}')" title="delete">×</button>
+      </div>`).join('');
+  } else {
+    toggle.style.display = 'none';
+  }
+}
+
+// ── Extra ─────────────────────────────────────────────────
+function addExtraTask() {
+  const input = document.getElementById('extra-input');
+  const val = input.value.trim();
+  if (!val) return;
+  state.extraTasks.push({ id: newId(), name: val, done: false, archived: false });
+  input.value = '';
+  save(); renderExtra();
+}
+
+function toggleExtraDone(id) {
+  const t = state.extraTasks.find(x => String(x.id) === String(id));
+  if (!t) return;
+  t.done = !t.done;
+  save(); renderExtra();
+}
+
+function removeExtraTask(id) {
+  state.extraTasks = state.extraTasks.filter(x => String(x.id) !== String(id));
+  save(); renderExtra();
+}
+
+function archiveExtraTask(id) {
+  const t = state.extraTasks.find(x => String(x.id) === String(id));
+  if (!t) return;
+  t.archived = true;
+  save(); renderExtra();
+}
+
+function unarchiveExtraTask(id) {
+  const t = state.extraTasks.find(x => String(x.id) === String(id));
+  if (!t) return;
+  t.archived = false;
+  save(); renderExtra();
+}
+
+function startExtraEdit(id) {
+  state.extraTasks.forEach(t => t.editing = false);
+  const t = state.extraTasks.find(x => String(x.id) === String(id));
+  if (t) t.editing = true;
+  renderExtra();
+}
+
+function saveExtraEdit(id) {
+  const t = state.extraTasks.find(x => String(x.id) === String(id));
+  if (!t) return;
+  const inp = document.getElementById('extra-edit-' + id);
+  if (inp && inp.value.trim()) t.name = inp.value.trim();
+  t.editing = false;
+  save(); renderExtra();
+}
+
+function cancelExtraEdit(id) {
+  const t = state.extraTasks.find(x => String(x.id) === String(id));
+  if (!t) return;
+  t.editing = false;
+  renderExtra();
+}
+
+function toggleExtraArchive() {
+  const sec = document.getElementById('extra-archive-section');
+  const toggle = document.getElementById('extra-archive-toggle');
+  const chevron = toggle.querySelector('.chevron');
+  const isOpen = sec.style.display !== 'none';
+  sec.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function extraTaskTpl(t) {
+  if (t.editing) {
+    return `<div class="task-item" data-id="${t.id}">
+      <input class="task-edit-input" id="extra-edit-${t.id}" value="${escHtml(t.name)}"
+        onkeydown="if(event.key==='Enter')saveExtraEdit('${t.id}');if(event.key==='Escape')cancelExtraEdit('${t.id}')"
+        onclick="event.stopPropagation()" />
+      <button class="c-btn" onclick="event.stopPropagation();saveExtraEdit('${t.id}')" style="color:var(--success)">✓</button>
+      <button class="c-btn" onclick="event.stopPropagation();cancelExtraEdit('${t.id}')">✕</button>
+    </div>`;
+  }
+  return `
+    <div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}"
+      onclick="toggleExtraDone('${t.id}')">
+      <div class="circle">
+        <svg class="check-icon" viewBox="0 0 10 10" fill="none">
+          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="task-name">${escHtml(t.name)}</span>
+      <button class="timer-start-btn" onclick="event.stopPropagation();openTimer('${t.id}')" title="start timer">⏱</button>
+      <button class="edit-btn" onclick="event.stopPropagation();startExtraEdit('${t.id}')" aria-label="edit">✎</button>
+      <button class="archive-btn" onclick="event.stopPropagation();archiveExtraTask('${t.id}')" title="archive">↓</button>
+      <button class="remove-btn" onclick="event.stopPropagation();removeExtraTask('${t.id}')" aria-label="remove">×</button>
+    </div>`;
+}
+
+function renderExtra() {
+  const list = document.getElementById('extra-list');
+  const active = state.extraTasks.filter(t => !t.archived);
+  list.innerHTML = active.length
+    ? active.map(extraTaskTpl).join('')
+    : '<div class="empty">nothing lingering right now</div>';
+  const editing = state.extraTasks.find(t => t.editing);
+  if (editing) {
+    const inp = document.getElementById('extra-edit-' + editing.id);
+    if (inp) { inp.focus(); inp.select(); }
+  }
+
+  const toggle = document.getElementById('extra-archive-toggle');
+  const archiveList = document.getElementById('extra-archive-list');
+  const archived = state.extraTasks.filter(t => t.archived);
+  if (archived.length > 0) {
+    toggle.style.display = 'block';
+    archiveList.innerHTML = archived.map(t => `
+      <div class="archive-item" style="display:flex;align-items:center;gap:8px">
+        <span class="archive-item-text" style="flex:1">${escHtml(t.name)}</span>
+        <button class="clarity-remove-btn" onclick="unarchiveExtraTask('${t.id}')" title="restore">↑</button>
+        <button class="clarity-remove-btn" onclick="removeExtraTask('${t.id}')" title="delete">×</button>
       </div>`).join('');
   } else {
     toggle.style.display = 'none';
@@ -1420,7 +1639,8 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'clarity') renderClarity();
   if (name === 'experiments') renderExperiments();
-  if (name === 'literature') renderLiteratureNotes();
+  if (name === 'capture') renderLiteratureNotes();
+  if (name === 'extra') renderExtra();
 }
 
 // ── Task Editing ───────────────────────────────────────
@@ -1576,7 +1796,7 @@ function updateTimerDisplay() {
 
 function openTimer(taskId) {
   timerTaskId = taskId;
-  const task = state.tasks.find(t => t.id === taskId);
+  const task = state.tasks.find(t => t.id === taskId) || (state.extraTasks || []).find(t => t.id === taskId);
   document.getElementById('timer-task-name').textContent = task ? task.name : 'no task selected';
   document.getElementById('timer-widget').classList.add('open');
   if ('Notification' in window && Notification.permission === 'default') {
@@ -1658,6 +1878,8 @@ async function syncFromDrive() {
         if (!state.clarityEvents) state.clarityEvents = [];
         if (!state.experiments) state.experiments = [];
         if (!state.literatureNotes) state.literatureNotes = [];
+        if (!state.extraTasks) state.extraTasks = [];
+        if (!state.experimentBuckets) state.experimentBuckets = [];
         delete state.constraints;
         delete state.constraintArchive;
         delete state.clarityWithin;
@@ -1757,8 +1979,10 @@ document.getElementById('task-input').addEventListener('keydown', e => { if (e.k
 document.getElementById('reward-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReward(); });
 document.getElementById('clarity-event-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarityEvent(); });
 document.getElementById('experiment-input').addEventListener('keydown', e => { if (e.key === 'Enter') addExperiment(); });
+document.getElementById('fleeting-input').addEventListener('keydown', e => { if (e.key === 'Enter') addFleetingNote(); });
 document.getElementById('litnote-link-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('litnote-reflection-input').focus(); });
 document.getElementById('litnote-reflection-input').addEventListener('keydown', e => { if (e.key === 'Enter') addLiteratureNote(); });
+document.getElementById('extra-input').addEventListener('keydown', e => { if (e.key === 'Enter') addExtraTask(); });
 
 // ── Boot ───────────────────────────────────────────────
 load();
