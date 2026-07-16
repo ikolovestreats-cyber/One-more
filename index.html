@@ -480,6 +480,32 @@
   .exp-status-badge.approved { background: #EAF7F0; color: var(--success); }
   .exp-status-badge.rejected { background: #FDEDED; color: #C0392B; }
 
+  .bucket-section { margin-bottom: 22px; }
+  .bucket-section-header {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    padding: 10px 2px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+    user-select: none;
+  }
+  .bucket-section-header .chevron { transition: transform 0.2s; font-style: normal; color: var(--muted); flex-shrink: 0; }
+  .bucket-section-title { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); flex: 1; }
+  .bucket-section-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+  .chain-row { margin-bottom: 16px; }
+  .chain-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px; }
+  .chain-arrow { color: var(--muted); font-size: 12px; margin: 0 1px; }
+  .chain-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 99px; border: 1px solid var(--border);
+    background: var(--surface); font-size: 13px; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .chain-pill:hover { border-color: var(--accent-muted); }
+  .chain-pill.open { border-color: var(--accent-muted); background: var(--accent-light); color: var(--accent); }
+  .chain-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
+  .chain-status-dot.approved { background: var(--success); }
+  .chain-status-dot.rejected { background: #C0392B; }
+  .chain-status-dot.pending { background: var(--medium); }
+  .chain-detail { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+
   .archive-toggle {
     display: flex; align-items: center; gap: 6px;
     background: none; border: none; cursor: pointer;
@@ -631,36 +657,40 @@
 
   <!-- EXPERIMENTS TAB -->
   <div class="tab-panel" id="tab-experiments">
-    <div class="add-row" style="margin-top:0;margin-bottom:8px">
-      <select id="exp-bucket-filter" class="bucket-select" style="max-width:none" onchange="setExperimentBucketFilter(this.value)">
-        <option value="">all buckets</option>
-      </select>
-    </div>
     <div class="add-row" style="margin-top:0;margin-bottom:18px">
       <input type="text" id="experiment-input" placeholder="add an experiment, e.g. no caffeine after 2pm" />
       <button onclick="addExperiment()">add</button>
     </div>
-    <div id="experiments-list"></div>
-    <button class="archive-toggle" id="experiments-archive-toggle" onclick="toggleExperimentsArchive()" style="display:none;margin-top:16px">
-      <em class="chevron">›</em> archived
-    </button>
-    <div class="archive-section" id="experiments-archive-section" style="display:none">
-      <div id="experiments-archive-list"></div>
+    <div class="add-row" style="margin-top:0;margin-bottom:8px">
+      <button class="backup-btn" onclick="toggleBucketManager()">manage buckets</button>
+      <button class="backup-btn" id="show-completed-btn" onclick="toggleShowCompletedExperiments()">show completed</button>
     </div>
+    <div id="bucket-manager" style="display:none;margin-bottom:16px">
+      <div class="reward-pills" id="bucket-manager-list"></div>
+    </div>
+    <div id="experiments-buckets"></div>
   </div><!-- /tab-experiments -->
 
   <!-- CAPTURE TAB -->
   <div class="tab-panel" id="tab-capture">
-    <div class="add-row" style="margin-top:0;margin-bottom:18px">
-      <input type="text" id="fleeting-input" placeholder="a fleeting thought…" />
-      <button onclick="addFleetingNote()">add</button>
-    </div>
-    <div class="add-row" style="margin-top:0;margin-bottom:8px">
-      <input type="text" id="litnote-link-input" placeholder="paste a link…" />
-    </div>
-    <div class="add-row" style="margin-top:0;margin-bottom:18px">
-      <input type="text" id="litnote-reflection-input" placeholder="quick reflection (optional)…" />
-      <button onclick="addLiteratureNote()">add</button>
+    <div class="clarity-cats-grid" style="margin-bottom:18px">
+      <div class="clarity-cat">
+        <div class="clarity-cat-label" style="color:var(--accent)">fleeting</div>
+        <div class="add-row mini">
+          <input type="text" id="fleeting-input" placeholder="a fleeting thought…" />
+          <button onclick="addFleetingNote()">add</button>
+        </div>
+      </div>
+      <div class="clarity-cat">
+        <div class="clarity-cat-label" style="color:#4A6C99">literature</div>
+        <div class="add-row mini" style="margin-bottom:6px">
+          <input type="text" id="litnote-link-input" placeholder="paste a link…" />
+        </div>
+        <div class="add-row mini">
+          <input type="text" id="litnote-reflection-input" placeholder="quick reflection (optional)…" />
+          <button onclick="addLiteratureNote()">add</button>
+        </div>
+      </div>
     </div>
     <div id="literature-list"></div>
     <button class="archive-toggle" id="literature-archive-toggle" onclick="toggleLiteratureArchive()" style="display:none;margin-top:16px">
@@ -981,7 +1011,9 @@ function renderClarity() {
 }
 
 // ── Experiments ─────────────────────────────────────────
-let experimentsCollapsed = new Set();
+let chainOpenLink = {};        // rootId -> currently open link id
+let expandedBuckets = new Set();
+let showCompletedExperiments = false;
 
 function addExperiment() {
   const input = document.getElementById('experiment-input');
@@ -989,7 +1021,7 @@ function addExperiment() {
   if (!val) return;
   state.experiments.push({
     id: newId(), name: val, archived: false, status: 'pending',
-    issues: [], worked: [], links: [], nextStep: '', bucket: ''
+    issues: [], worked: [], links: [], nextStep: '', bucket: '', parentId: null
   });
   input.value = '';
   save(); renderExperiments();
@@ -998,26 +1030,6 @@ function addExperiment() {
 function removeExperiment(id) {
   state.experiments = state.experiments.filter(e => String(e.id) !== String(id));
   save(); renderExperiments();
-}
-
-function archiveExperiment(id) {
-  const exp = state.experiments.find(e => String(e.id) === String(id));
-  if (!exp) return;
-  exp.archived = true;
-  save(); renderExperiments();
-}
-
-function unarchiveExperiment(id) {
-  const exp = state.experiments.find(e => String(e.id) === String(id));
-  if (!exp) return;
-  exp.archived = false;
-  save(); renderExperiments();
-}
-
-function toggleExperimentCollapse(id) {
-  if (experimentsCollapsed.has(id)) experimentsCollapsed.delete(id);
-  else experimentsCollapsed.add(id);
-  renderExperiments();
 }
 
 function addExperimentItem(expId, listName) {
@@ -1060,9 +1072,52 @@ function setExperimentBucket(expId, value) {
   save(); renderExperiments();
 }
 
-let experimentBucketFilter = '';
-function setExperimentBucketFilter(value) {
-  experimentBucketFilter = value;
+function toggleBucketManager() {
+  const sec = document.getElementById('bucket-manager');
+  sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+}
+
+function renameExperimentBucket(oldName) {
+  const newName = (prompt('Rename bucket:', oldName) || '').trim();
+  if (!newName || newName === oldName) return;
+  const idx = state.experimentBuckets.indexOf(oldName);
+  if (idx === -1) return;
+  if (state.experimentBuckets.includes(newName)) {
+    alert('A bucket with that name already exists.');
+    return;
+  }
+  state.experimentBuckets[idx] = newName;
+  state.experiments.forEach(e => { if (e.bucket === oldName) e.bucket = newName; });
+  save(); renderExperiments();
+}
+
+function deleteExperimentBucket(name) {
+  if (!confirm(`Delete bucket "${name}"? Experiments in it will become unsorted.`)) return;
+  state.experimentBuckets = state.experimentBuckets.filter(b => b !== name);
+  state.experiments.forEach(e => { if (e.bucket === name) e.bucket = ''; });
+  expandedBuckets.delete(name);
+  save(); renderExperiments();
+}
+
+function toggleShowCompletedExperiments() {
+  showCompletedExperiments = !showCompletedExperiments;
+  const btn = document.getElementById('show-completed-btn');
+  if (btn) btn.textContent = showCompletedExperiments ? 'hide completed' : 'show completed';
+  renderExperiments();
+}
+
+function toggleBucketSection(name) {
+  if (expandedBuckets.has(name)) expandedBuckets.delete(name);
+  else expandedBuckets.add(name);
+  renderExperiments();
+}
+
+function toggleChainLink(rootId, linkId) {
+  if (String(chainOpenLink[rootId]) === String(linkId)) {
+    delete chainOpenLink[rootId];
+  } else {
+    chainOpenLink[rootId] = linkId;
+  }
   renderExperiments();
 }
 
@@ -1074,24 +1129,17 @@ function saveNextStep(expId) {
   save();
 }
 
-function promoteNextStep(expId) {
+function promoteNextStep(expId, rootId) {
   const exp = state.experiments.find(e => String(e.id) === String(expId));
   if (!exp || !exp.nextStep || !exp.nextStep.trim()) return;
-  state.experiments.push({
+  const newExp = {
     id: newId(), name: exp.nextStep.trim(), archived: false, status: 'pending',
-    issues: [], worked: [], links: [], nextStep: '', bucket: ''
-  });
+    issues: [], worked: [], links: [], nextStep: '', bucket: exp.bucket || '', parentId: exp.id
+  };
+  state.experiments.push(newExp);
+  chainOpenLink[rootId] = newExp.id;
   save(); renderExperiments();
   showToast('new experiment started');
-}
-
-function toggleExperimentsArchive() {
-  const sec = document.getElementById('experiments-archive-section');
-  const toggle = document.getElementById('experiments-archive-toggle');
-  const chevron = toggle.querySelector('.chevron');
-  const isOpen = sec.style.display !== 'none';
-  sec.style.display = isOpen ? 'none' : 'block';
-  chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
 }
 
 function experimentItemTpl(exp, listName, item) {
@@ -1119,39 +1167,53 @@ function bucketSelectTpl(exp) {
     </select>`;
 }
 
-function experimentCardTpl(exp) {
-  const collapsed = experimentsCollapsed.has(exp.id);
+function buildExperimentChains() {
+  const byId = {};
+  state.experiments.forEach(e => byId[String(e.id)] = e);
+  const roots = state.experiments.filter(e => !e.parentId || !byId[String(e.parentId)]);
+  return roots.map(root => {
+    const chain = [root];
+    let current = root;
+    while (true) {
+      const next = state.experiments.find(e => String(e.parentId) === String(current.id));
+      if (!next) break;
+      chain.push(next);
+      current = next;
+    }
+    return chain;
+  });
+}
+
+function chainIsCompleted(chain) {
+  const tip = chain[chain.length - 1];
+  return tip.status !== 'pending' || tip.archived;
+}
+
+function experimentDetailTpl(exp, isRoot, rootId) {
   const listsHtml = ['issues','worked','links'].map(listName => `
     <div class="clarity-cat ${listName}">
       <div class="clarity-cat-label ${listName}">${listName === 'issues' ? 'issues' : listName === 'worked' ? 'what worked' : 'links'}</div>
       <div class="add-row mini">
         <input type="text" id="exp-input-${exp.id}-${listName}" placeholder="${listName === 'links' ? 'paste a link…' : ''}"
-          onclick="event.stopPropagation()"
           onkeydown="if(event.key==='Enter')addExperimentItem('${exp.id}','${listName}')" />
-        <button onclick="event.stopPropagation();addExperimentItem('${exp.id}','${listName}')">add</button>
+        <button onclick="addExperimentItem('${exp.id}','${listName}')">add</button>
       </div>
-      <div class="clarity-list" onclick="event.stopPropagation()">
+      <div class="clarity-list">
         ${(exp[listName]||[]).length ? (exp[listName]||[]).map(item => experimentItemTpl(exp, listName, item)).join('') : '<div class="empty">nothing here right now</div>'}
       </div>
     </div>`).join('');
 
   return `
-    <div class="clarity-event-card ${collapsed ? 'collapsed' : ''}" data-id="${exp.id}">
-      <div class="clarity-event-header" onclick="toggleExperimentCollapse('${exp.id}')">
-        <div class="clarity-event-header-left">
-          <em class="clarity-event-chevron" style="transform:rotate(${collapsed ? '0' : '90'}deg)">›</em>
-          <span class="clarity-event-name">${escHtml(exp.name)}</span>
-          <span class="exp-status-badge ${exp.status}">${exp.status}</span>
-          ${bucketSelectTpl(exp)}
-        </div>
-        <div class="clarity-event-acts">
-          <button class="c-btn" onclick="event.stopPropagation();archiveExperiment('${exp.id}')" title="archive">↓</button>
-          <button class="c-btn" onclick="event.stopPropagation();removeExperiment('${exp.id}')" title="delete" style="color:#B91C1C">×</button>
+    <div class="chain-detail">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <span class="exp-status-badge ${exp.status}">${exp.status}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${isRoot ? bucketSelectTpl(exp) : ''}
+          <button class="c-btn" onclick="removeExperiment('${exp.id}')" title="delete" style="color:#B91C1C">×</button>
         </div>
       </div>
-      ${collapsed ? '' : `
       <div class="clarity-cats-grid">${listsHtml}</div>
-      <div class="clarity-cat" style="margin-top:16px" onclick="event.stopPropagation()">
+      <div class="clarity-cat" style="margin-top:16px">
         <div class="clarity-cat-label" style="color:var(--muted)">status</div>
         <div class="exp-status-row">
           <button class="${exp.status==='pending'?'active-pending':''}" onclick="setExperimentStatus('${exp.id}','pending')">pending</button>
@@ -1159,49 +1221,81 @@ function experimentCardTpl(exp) {
           <button class="${exp.status==='rejected'?'active-rejected':''}" onclick="setExperimentStatus('${exp.id}','rejected')">rejected</button>
         </div>
       </div>
-      <div class="clarity-cat" style="margin-top:16px" onclick="event.stopPropagation()">
+      <div class="clarity-cat" style="margin-top:16px">
         <div class="clarity-cat-label" style="color:var(--accent)">next step</div>
         <div class="add-row mini">
           <input type="text" id="exp-next-${exp.id}" placeholder="what's next…" value="${escHtml(exp.nextStep || '')}"
             onchange="saveNextStep('${exp.id}')"
-            onkeydown="if(event.key==='Enter'){saveNextStep('${exp.id}');promoteNextStep('${exp.id}')}" />
-          <button onclick="saveNextStep('${exp.id}');promoteNextStep('${exp.id}')">→ new experiment</button>
+            onkeydown="if(event.key==='Enter'){saveNextStep('${exp.id}');promoteNextStep('${exp.id}','${rootId}')}" />
+          <button onclick="saveNextStep('${exp.id}');promoteNextStep('${exp.id}','${rootId}')">→ new experiment</button>
         </div>
-      </div>`}
+      </div>
+    </div>`;
+}
+
+function experimentChainTpl(chain) {
+  const root = chain[0];
+  const openId = chainOpenLink[root.id];
+  const openExp = chain.find(e => String(e.id) === String(openId));
+
+  const trail = chain.map((link, i) => `
+    ${i > 0 ? '<span class="chain-arrow">→</span>' : ''}
+    <span class="chain-pill ${String(link.id)===String(openId)?'open':''}" onclick="toggleChainLink('${root.id}','${link.id}')">
+      <span class="chain-status-dot ${link.status}"></span>${escHtml(link.name)}
+    </span>`).join('');
+
+  return `
+    <div class="chain-row">
+      <div class="chain-trail">${trail}</div>
+      ${openExp ? experimentDetailTpl(openExp, String(openExp.id) === String(root.id), root.id) : ''}
     </div>`;
 }
 
 function renderExperiments() {
-  const filterSel = document.getElementById('exp-bucket-filter');
-  if (filterSel) {
-    const bucketOptions = state.experimentBuckets.map(b =>
-      `<option value="${escHtml(b)}" ${experimentBucketFilter === b ? 'selected' : ''}>${escHtml(b)}</option>`
-    ).join('');
-    filterSel.innerHTML = `<option value="">all buckets</option>${bucketOptions}`;
-    filterSel.value = experimentBucketFilter;
+  const bucketMgrList = document.getElementById('bucket-manager-list');
+  if (bucketMgrList) {
+    bucketMgrList.innerHTML = state.experimentBuckets.length
+      ? state.experimentBuckets.map(b => `
+          <div class="pill">
+            ${escHtml(b)}
+            <button onclick="renameExperimentBucket('${escJsAttr(b)}')" title="rename">✎</button>
+            <button onclick="deleteExperimentBucket('${escJsAttr(b)}')" title="delete">×</button>
+          </div>`).join('')
+      : '<div class="empty">no buckets yet — create one from any experiment\'s dropdown</div>';
   }
 
-  const list = document.getElementById('experiments-list');
-  const active = state.experiments.filter(e => !e.archived && (!experimentBucketFilter || e.bucket === experimentBucketFilter));
-  list.innerHTML = active.length
-    ? active.map(experimentCardTpl).join('')
-    : '<div class="empty">no experiments yet — add one above</div>';
+  const chains = buildExperimentChains();
+  const groups = {};
+  chains.forEach(chain => {
+    const b = chain[0].bucket || '';
+    if (!groups[b]) groups[b] = [];
+    groups[b].push(chain);
+  });
 
-  const toggle = document.getElementById('experiments-archive-toggle');
-  const archiveList = document.getElementById('experiments-archive-list');
-  const archived = state.experiments.filter(e => e.archived);
-  if (archived.length > 0) {
-    toggle.style.display = 'block';
-    archiveList.innerHTML = archived.map(exp => `
-      <div class="archive-item" style="display:flex;align-items:center;gap:8px">
-        <span class="archive-item-text" style="flex:1">${escHtml(exp.name)}</span>
-        <button class="clarity-remove-btn" onclick="unarchiveExperiment('${exp.id}')" title="restore">↑</button>
-        <button class="clarity-remove-btn" onclick="removeExperiment('${exp.id}')" title="delete">×</button>
-      </div>`).join('');
-  } else {
-    toggle.style.display = 'none';
-  }
+  const order = [''].concat(state.experimentBuckets);
+  const sections = order.filter(b => groups[b] && groups[b].length).map(b => {
+    const label = b === '' ? 'unsorted' : b;
+    const allChains = groups[b];
+    const visibleChains = allChains.filter(c => showCompletedExperiments || !chainIsCompleted(c));
+    const expanded = expandedBuckets.has(b);
+    const body = visibleChains.length
+      ? visibleChains.map(experimentChainTpl).join('')
+      : '<div class="empty">nothing active — try "show completed"</div>';
+    return `
+      <div class="bucket-section">
+        <div class="bucket-section-header" onclick="toggleBucketSection('${escJsAttr(b)}')">
+          <em class="chevron" style="transform:rotate(${expanded ? 90 : 0}deg)">›</em>
+          <span class="bucket-section-title">${escHtml(label)}</span>
+          <span class="bucket-section-count">${visibleChains.length}</span>
+        </div>
+        ${expanded ? body : ''}
+      </div>`;
+  }).join('');
+
+  const container = document.getElementById('experiments-buckets');
+  container.innerHTML = sections || '<div class="empty">no experiments yet — add one above</div>';
 }
+
 
 // ── Literature Notes ─────────────────────────────────────
 function addFleetingNote() {
@@ -1628,6 +1722,16 @@ function render() {
 
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escJsAttr(s) {
+  // Safe for embedding inside a single-quoted JS string within a double-quoted HTML attribute
+  return String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // ── Tabs ───────────────────────────────────────────────
