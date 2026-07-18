@@ -789,6 +789,7 @@ function _save() {
 }
 
 function save() {
+  state.lastModified = Date.now();
   _save();
   saveToDrive();
 }
@@ -2018,6 +2019,20 @@ function initDriveAuth() {
   client.requestAccessToken();
 }
 
+function handleAuthExpired() {
+  // token is dead — don't misread this as "no file exists"; force a real re-login
+  driveToken = null;
+  driveFileId = null;
+  localStorage.removeItem('onemore_drive_token');
+  clearTimeout(syncTimeout);
+  setSyncStatus('error', 'session expired');
+  document.getElementById('mainApp').style.display = 'none';
+  const gate = document.getElementById('signinGate');
+  gate.classList.remove('hidden');
+  const err = document.getElementById('signinError');
+  if (err) { err.textContent = 'Your session expired — please sign in again.'; err.classList.add('show'); }
+}
+
 async function syncFromDrive() {
   try {
     // find existing file
@@ -2025,6 +2040,7 @@ async function syncFromDrive() {
       `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'&fields=files(id,name)`,
       { headers: { Authorization: `Bearer ${driveToken}` } }
     );
+    if (search.status === 401) { handleAuthExpired(); return; }
     const result = await search.json();
     if (result.files && result.files.length > 0) {
       driveFileId = result.files[0].id;
@@ -2033,69 +2049,97 @@ async function syncFromDrive() {
         `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
         { headers: { Authorization: `Bearer ${driveToken}` } }
       );
+      if (fileResp.status === 401) { handleAuthExpired(); return; }
       const driveData = await fileResp.json();
       if (driveData && driveData.tasks) {
-        state = { ...state, ...driveData };
-        if (!state.clarityEvents) state.clarityEvents = [];
-        if (!state.experiments) state.experiments = [];
-        if (!state.literatureNotes) state.literatureNotes = [];
-        if (!state.extraTasks) state.extraTasks = [];
-        if (!state.experimentBuckets) state.experimentBuckets = [];
-        delete state.constraints;
-        delete state.constraintArchive;
-        delete state.clarityWithin;
-        delete state.clarityOutside;
-        delete state.clarityOutsideArchive;
-        _save(); render(); renderClarity();
+        const driveIsNewer = (driveData.lastModified || 0) > (state.lastModified || 0);
+        if (driveIsNewer) {
+          // Drive really is newer — safe to load it over local
+          state = { ...state, ...driveData };
+          if (!state.clarityEvents) state.clarityEvents = [];
+          if (!state.experiments) state.experiments = [];
+          if (!state.literatureNotes) state.literatureNotes = [];
+          if (!state.extraTasks) state.extraTasks = [];
+          if (!state.experimentBuckets) state.experimentBuckets = [];
+          delete state.constraints;
+          delete state.constraintArchive;
+          delete state.clarityWithin;
+          delete state.clarityOutside;
+          delete state.clarityOutsideArchive;
+          _save(); render(); renderClarity();
+          setSyncStatus('ok', 'synced');
+        } else {
+          // local copy is newer (or equal) than what's on Drive — push local up instead of overwriting it
+          await doDriveSave();
+        }
+      } else {
+        setSyncStatus('ok', 'synced');
       }
-      setSyncStatus('ok', 'synced');
     } else {
       // no file yet — create one
-      setSyncStatus('saving', 'saving…');
-      await saveToDrive();
+      await doDriveSave();
     }
   } catch(e) {
     setSyncStatus('error', 'sync failed');
   }
 }
 
-async function saveToDrive() {
+async function doDriveSave() {
   if (!driveToken) return;
-  clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(async () => {
-    setSyncStatus('saving', 'saving…');
-    try {
-      const body = JSON.stringify(state);
-      if (driveFileId) {
-        // update existing
-        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
-          body
-        });
-      } else {
-        // create new
-        const meta = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] })
-        });
-        const metaResult = await meta.json();
-        driveFileId = metaResult.id;
-        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
-          body
-        });
-      }
-      setSyncStatus('ok', 'saved');
-    } catch(e) {
-      setSyncStatus('error', 'save failed');
+  setSyncStatus('saving', 'saving…');
+  try {
+    const body = JSON.stringify(state);
+    if (driveFileId) {
+      // update existing
+      const resp = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+        body,
+        keepalive: true
+      });
+      if (resp.status === 401) { handleAuthExpired(); return; }
+    } else {
+      // create new
+      const meta = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] }),
+        keepalive: true
+      });
+      if (meta.status === 401) { handleAuthExpired(); return; }
+      const metaResult = await meta.json();
+      driveFileId = metaResult.id;
+      const resp2 = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+        body,
+        keepalive: true
+      });
+      if (resp2.status === 401) { handleAuthExpired(); return; }
     }
-  }, 1500); // debounce — wait 1.5s after last change before saving
+    setSyncStatus('ok', 'saved');
+  } catch(e) {
+    setSyncStatus('error', 'save failed');
+  }
 }
 
-// saveToDrive is called from save() above
+function saveToDrive() {
+  if (!driveToken) return;
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(doDriveSave, 400); // shortened debounce
+}
+
+// force any pending save through immediately if the tab is closed or backgrounded,
+// instead of losing it to the debounce timer
+function flushSaveNow() {
+  if (!driveToken) return;
+  clearTimeout(syncTimeout);
+  doDriveSave();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushSaveNow();
+});
+window.addEventListener('pagehide', flushSaveNow);
 
 // ── Sign-in Gate ───────────────────────────────────────
 function startSignIn() {
@@ -2118,6 +2162,7 @@ function startSignIn() {
       driveToken = resp.access_token;
       localStorage.setItem('onemore_drive_token', driveToken);
       await syncFromDrive();
+      if (!driveToken) return; // syncFromDrive detected an expired/invalid token and already reset the gate
       document.getElementById('signinGate').classList.add('hidden');
       document.getElementById('mainApp').style.display = '';
       setSyncStatus('ok', 'synced');
@@ -2152,6 +2197,7 @@ const savedToken = localStorage.getItem('onemore_drive_token');
 if (savedToken) {
   driveToken = savedToken;
   syncFromDrive().then(() => {
+    if (!driveToken) return; // expired token already handled — gate stays visible with the error message
     document.getElementById('signinGate').classList.add('hidden');
     document.getElementById('mainApp').style.display = '';
     setSyncStatus('synced', 'synced');
