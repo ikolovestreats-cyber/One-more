@@ -215,6 +215,68 @@
   @keyframes timerFlash { 0%,100%{background:transparent} 50%{background:#FEE2E2} }
   .timer-widget.done { animation: timerFlash 0.6s ease-in-out infinite; }
 
+  /* ROUTINE NAME / REWARD */
+  .routine-field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .routine-field-row label {
+    font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 400;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+    flex-shrink: 0; width: 52px;
+  }
+  .routine-field-row input {
+    flex: 1; height: 36px; padding: 0 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); outline: none;
+    transition: border-color 0.15s;
+  }
+  .routine-field-row input:focus { border-color: var(--accent); }
+  .routine-field-row input::placeholder { color: var(--muted); }
+
+  /* ROUTINE DIAL TIMER */
+  .dial-section { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 4px 0 1.75rem; }
+  .dial-wrap { position: relative; width: 168px; height: 168px; touch-action: none; user-select: none; }
+  .dial-face {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: conic-gradient(var(--accent) 0deg calc(var(--pct,25) * 3.6deg), var(--border) calc(var(--pct,25) * 3.6deg) 360deg);
+    border: 4px solid var(--bg);
+    position: relative; cursor: grab;
+  }
+  .dial-inner {
+    position: absolute; inset: 18px; background: var(--surface); border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(26,25,22,0.08) inset;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dial-knob { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+  .dial-lcd {
+    font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 300;
+    letter-spacing: 0.06em; color: var(--text);
+  }
+  .dial-controls { display: flex; gap: 6px; }
+  .dial-hint { font-size: 11px; color: var(--muted); font-weight: 300; }
+
+  /* PROGRESS */
+  .progress-row { display: flex; align-items: center; gap: 10px; }
+  .progress-track { flex: 1; height: 8px; background: var(--border); border-radius: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 6px; transition: width 0.3s ease; }
+  .progress-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+  /* TASK TIME */
+  .task-time { width: 40px; flex-shrink: 0; border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); padding: 2px 0; }
+  .task-time:focus { outline: none; }
+  .task-time::placeholder { color: var(--border); }
+  .task-period {
+    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+    width: 44px; flex-shrink: 0; border: none; background: var(--bg);
+    border-radius: 6px; padding: 3px 2px;
+  }
+  .task-period:focus { outline: 1px solid var(--accent); }
+  .task-text-input {
+    flex: 1; border: none; background: transparent;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); padding: 2px 0;
+  }
+  .task-text-input:focus { outline: none; }
+  .task-item.done .task-text-input { text-decoration: line-through; color: var(--muted); }
+
   /* ADD ROW */
   .add-row { display: flex; gap: 6px; margin-top: 8px; }
   .add-row input {
@@ -609,46 +671,53 @@
   <!-- TASKS TAB -->
   <div class="tab-panel" id="tab-tasks">
 
-  <!-- counters -->
-  <div class="counters">
-    <div class="counter"><div class="num" id="cnt-done">0</div><div class="lbl">done today</div></div>
-    <div class="counter"><div class="num" id="cnt-total">0</div><div class="lbl">total tasks</div></div>
-    <div class="counter"><div class="num" id="cnt-rewards">0</div><div class="lbl">rewards</div></div>
+  <!-- routine name -->
+  <div class="routine-field-row">
+    <label for="routine-name-input">name</label>
+    <input type="text" id="routine-name-input" placeholder="for example" oninput="updateRoutineName(this.value)" />
+  </div>
+
+  <!-- dial timer -->
+  <div class="dial-section">
+    <div class="dial-wrap" id="dialWrap">
+      <div class="dial-face" id="dialFace"><div class="dial-inner"><div class="dial-knob"></div></div></div>
+    </div>
+    <div class="dial-lcd" id="dialLcd">00:00</div>
+    <div class="dial-controls">
+      <button class="timer-btn start" id="dialStartBtn" onclick="toggleDialTimer()">start</button>
+      <button class="timer-btn" onclick="resetDialTimer()">reset</button>
+    </div>
+    <div class="dial-hint">drag the dial to set minutes</div>
   </div>
 
   <!-- tasks -->
   <div class="section">
-    <div class="section-head" style="justify-content:flex-end">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="weight-legend">
-          <span class="wleg"><span class="wdot heavy"></span>heavy</span>
-          <span class="wleg"><span class="wdot medium"></span>medium</span>
-          <span class="wleg"><span class="wdot light"></span>light</span>
-        </div>
-        <button class="clear-btn" onclick="clearDone()">clear done</button>
-      </div>
+    <div class="section-head">
+      <div class="section-label">tasks</div>
+      <button class="clear-btn" onclick="clearDone()">clear done</button>
     </div>
     <div class="task-list" id="task-list"></div>
     <div class="add-row" style="margin-top:8px">
       <input type="text" id="task-input" placeholder="add a task…" />
-      <select class="weight-select" id="weight-select">
-        <option value="light">light</option>
-        <option value="medium">medium</option>
-        <option value="heavy" selected>heavy</option>
-      </select>
       <button onclick="addTask()">add</button>
+    </div>
+  </div>
+
+  <!-- progress -->
+  <div class="section">
+    <div class="section-head"><div class="section-label">progress</div></div>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-num" id="progress-num">0/0</div>
     </div>
   </div>
 
   <hr class="divider" />
 
-  <!-- rewards -->
-  <div class="section">
-    <div class="reward-pills" id="reward-list"></div>
-    <div class="add-row">
-      <input type="text" id="reward-input" placeholder="add a reward…" />
-      <button onclick="addReward()">add</button>
-    </div>
+  <!-- reward -->
+  <div class="routine-field-row" style="margin-bottom:0">
+    <label for="routine-reward-input">reward</label>
+    <input type="text" id="routine-reward-input" placeholder="what do they earn?" oninput="updateRoutineReward(this.value)" />
   </div>
 
   <div class="reset-row">
@@ -781,15 +850,50 @@ let state = {
   experiments: [],
   literatureNotes: [],
   extraTasks: [],
-  experimentBuckets: []
+  experimentBuckets: [],
+  routineName: '',
+  routineReward: '',
+  dialMinutes: 15
 };
+
+// Migrate old weight-based task records ({name, weight}) to the new
+// time-based schema ({text, time, period}) used by the routine tasks tab.
+function migrateTasks() {
+  state.tasks.forEach(t => {
+    if (t.text === undefined) t.text = t.name || '';
+    if (t.time === undefined) t.time = '';
+    if (t.period === undefined) t.period = '';
+  });
+}
+
+function timeToMinutes(t) {
+  if (!t.time || !t.period) return null;
+  const parts = t.time.split(':');
+  let h = parseInt(parts[0], 10);
+  let m = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+  if (isNaN(h)) return null;
+  if (isNaN(m)) m = 0;
+  if (t.period === 'PM' && h !== 12) h += 12;
+  if (t.period === 'AM' && h === 12) h = 0;
+  return h * 60 + m;
+}
+
+function sortTasks() {
+  const withIndex = state.tasks.map((t, i) => ({ t, i, mins: timeToMinutes(t) }));
+  withIndex.sort((a, b) => {
+    if (a.mins === null && b.mins === null) return a.i - b.i;
+    if (a.mins === null) return 1;
+    if (b.mins === null) return -1;
+    return a.mins - b.mins;
+  });
+  state.tasks = withIndex.map(x => x.t);
+}
 
 function _save() {
   localStorage.setItem('onemore_state', JSON.stringify(state));
 }
 
 function save() {
-  state.lastModified = Date.now();
   _save();
   saveToDrive();
 }
@@ -805,6 +909,9 @@ function load() {
       if (!state.literatureNotes) state.literatureNotes = [];
       if (!state.extraTasks) state.extraTasks = [];
       if (!state.experimentBuckets) state.experimentBuckets = [];
+      if (state.routineName === undefined) state.routineName = '';
+      if (state.routineReward === undefined) state.routineReward = '';
+      if (state.dialMinutes === undefined) state.dialMinutes = 15;
       // old schema fields no longer supported — drop them
       delete state.constraints;
       delete state.constraintArchive;
@@ -815,6 +922,7 @@ function load() {
         state.doneToday = 0;
         state.lastReset = new Date().toDateString();
       }
+      migrateTasks();
     }
   } catch(e) {}
 }
@@ -910,28 +1018,13 @@ function toggleClarityArchive() {
   chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
 }
 
-function showWeightPicker(id) {
-  const wp = document.getElementById('ci-wp-' + id);
-  if (wp) wp.style.display = 'flex';
-  const acts = document.getElementById('ci-acts-' + id);
-  if (acts) acts.style.display = 'none';
-}
-function hideWeightPicker(id) {
-  const wp = document.getElementById('ci-wp-' + id);
-  if (wp) wp.style.display = 'none';
-  const acts = document.getElementById('ci-acts-' + id);
-  if (acts) acts.style.display = 'flex';
-}
-
-function promoteClarityItem(eventId, itemId, weight) {
+function promoteClarityItem(eventId, itemId) {
   const ev = state.clarityEvents.find(e => String(e.id) === String(eventId));
   if (!ev) return;
   const item = ev.within.find(c => String(c.id) === String(itemId));
   if (!item) return;
-  const w = ['light','medium','heavy'].includes(weight) ? weight : 'medium';
   const taskId = Date.now() + Math.random();
-  state.tasks.push({ id: taskId, name: item.text, done: false, weight: w });
-  assignRewardToTask(taskId, w);
+  state.tasks.push({ id: taskId, text: item.text, time: '', period: '', done: false });
   ev.within = ev.within.filter(c => String(c.id) !== String(itemId));
   save(); render(); renderClarity();
   switchTab('tasks');
@@ -943,14 +1036,8 @@ function clarityItemTpl(ev, cat, item) {
       <div class="clarity-item" id="ci-${item.id}">
         <div class="clarity-item-text">${escHtml(item.text)}</div>
         <div class="clarity-item-acts" id="ci-acts-${item.id}">
-          <button class="clarity-promote-btn" onclick="showWeightPicker('${item.id}')">→ task</button>
+          <button class="clarity-promote-btn" onclick="promoteClarityItem('${ev.id}','${item.id}')">→ task</button>
           <button class="clarity-remove-btn" onclick="removeClarityItem('${ev.id}','within','${item.id}')" aria-label="remove">×</button>
-        </div>
-        <div class="clarity-weight-picker" id="ci-wp-${item.id}" style="display:none">
-          <button class="timer-dur-btn" onclick="promoteClarityItem('${ev.id}','${item.id}','light')">light</button>
-          <button class="timer-dur-btn" onclick="promoteClarityItem('${ev.id}','${item.id}','medium')">medium</button>
-          <button class="timer-dur-btn" onclick="promoteClarityItem('${ev.id}','${item.id}','heavy')">heavy</button>
-          <button class="clarity-remove-btn" onclick="hideWeightPicker('${item.id}')" style="margin-left:4px">×</button>
         </div>
       </div>`;
   }
@@ -1570,61 +1657,50 @@ function renderExtra() {
 }
 function addTask() {
   const input = document.getElementById('task-input');
-  const weightEl = document.getElementById('weight-select');
   const val = input.value.trim();
   if (!val) return;
   const id = Date.now() + Math.random();
-  const weight = weightEl.value;
-  state.tasks.push({ id, name: val, done: false, weight });
-  const rewarded = assignRewardToTask(id, weight);
-  if (rewarded) state.tasksSinceLast = 0;
+  state.tasks.push({ id, text: val, time: '', period: '', done: false });
   input.value = '';
   save(); render();
 }
 
-function completeTask(id) {
+function toggleTaskDone(id) {
   const task = state.tasks.find(t => t.id === id);
-  if (!task || task.done) return;
-  task.done = true;
-  state.doneToday++;
-  state.tasksSinceLast++;
+  if (!task) return;
+  task.done = !task.done;
+  save(); render();
+}
 
-  const reward = state.rewardMap[id];
-  if (reward) {
-    state.rewardsEarned++;
-    state.tasksSinceLast = 0;
-    save(); render();
-    setTimeout(() => showReveal(reward), 180);
-  } else {
-    save(); render();
-  }
+function updateTaskField(id, field, value) {
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  task[field] = value;
+  save();
+}
+
+function commitTaskTime(id) {
+  sortTasks(); save(); render();
 }
 
 function removeTask(id) {
   state.tasks = state.tasks.filter(t => t.id !== id);
-  delete state.rewardMap[id];
   save(); render();
 }
 
 function clearDone() {
-  const doneIds = state.tasks.filter(t => t.done).map(t => t.id);
-  doneIds.forEach(id => delete state.rewardMap[id]);
   state.tasks = state.tasks.filter(t => !t.done);
   save(); render();
 }
 
-function addReward() {
-  const input = document.getElementById('reward-input');
-  const val = input.value.trim();
-  if (!val) return;
-  state.rewards.push({ text: val, weight: 'heavy' });
-  input.value = '';
-  save(); render();
+function updateRoutineName(val) {
+  state.routineName = val;
+  save();
 }
 
-function removeReward(idx) {
-  state.rewards.splice(idx, 1);
-  save(); render();
+function updateRoutineReward(val) {
+  state.routineReward = val;
+  save();
 }
 
 // ── Reset ──────────────────────────────────────────────
@@ -1633,7 +1709,7 @@ function closeConfirm() { document.getElementById('confirm-overlay').classList.r
 function confirmReset() {
   state = {
     ...state,
-    tasks: [], rewards: [], rewardMap: {},
+    tasks: [], routineReward: '',
     doneToday: 0, rewardsEarned: 0, tasksSinceLast: 0,
     lastReset: new Date().toDateString()
   };
@@ -1708,74 +1784,43 @@ function showToast(msg) {
 
 // ── Render ─────────────────────────────────────────────
 function render() {
-  document.getElementById('cnt-done').textContent = state.doneToday;
-  document.getElementById('cnt-total').textContent = state.tasks.length;
-  document.getElementById('cnt-rewards').textContent = state.rewardsEarned;
+  document.getElementById('routine-name-input').value = state.routineName || '';
+  document.getElementById('routine-reward-input').value = state.routineReward || '';
+
+  sortTasks();
 
   const list = document.getElementById('task-list');
   if (state.tasks.length === 0) {
     list.innerHTML = '<div class="empty">no tasks yet — add one below</div>';
   } else {
-    list.innerHTML = state.tasks.map(t => {
-      const w = t.weight || 'light';
-      if (t.editing) {
-        return `<div class="task-item weight-${w}" data-id="${t.id}">
-          <div class="drag-handle"><span></span><span></span><span></span></div>
-          <input class="task-edit-input" id="tedit-${t.id}" value="${escHtml(t.name)}"
-            onkeydown="if(event.key==='Enter')saveTaskEdit(${t.id});if(event.key==='Escape')cancelTaskEdit(${t.id})"
-            onclick="event.stopPropagation()" />
-          <select class="weight-select" id="tedit-w-${t.id}" onclick="event.stopPropagation()" onchange="event.stopPropagation()" style="height:30px;font-size:12px;">
-            <option value="light" ${w==='light'?'selected':''}>light</option>
-            <option value="medium" ${w==='medium'?'selected':''}>medium</option>
-            <option value="heavy" ${w==='heavy'?'selected':''}>heavy</option>
-          </select>
-          <button class="c-btn" onclick="event.stopPropagation();saveTaskEdit(${t.id})" style="color:var(--success)">✓</button>
-          <button class="c-btn" onclick="event.stopPropagation();cancelTaskEdit(${t.id})">✕</button>
-        </div>`;
-      }
-      return `
-      <div class="task-item ${t.done ? 'done' : ''} weight-${w}"
-        draggable="${t.done ? 'false' : 'true'}"
-        data-id="${t.id}"
-        onclick="${t.done ? '' : `completeTask(${t.id})`}"
-        ondragstart="dragStart(event, ${t.id})"
-        ondragover="dragOver(event)"
-        ondragleave="dragLeave(event)"
-        ondrop="dragDrop(event, ${t.id})"
-        ondragend="dragEnd(event)">
-        <div class="drag-handle" onclick="event.stopPropagation()">
-          <span></span><span></span><span></span>
-        </div>
+    list.innerHTML = state.tasks.map(t => `
+      <div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}" onclick="toggleTaskDone(${t.id})">
         <div class="circle">
           <svg class="check-icon" viewBox="0 0 10 10" fill="none">
             <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <span class="task-name">${escHtml(t.name)}</span>
-        <span class="task-weight-label ${w}">${w}</span>
-        ${!t.done ? `<button class="timer-start-btn" onclick="event.stopPropagation();openTimer(${t.id})" title="start timer">⏱</button>` : ''}
-        ${!t.done ? `<button class="edit-btn" onclick="event.stopPropagation(); startTaskEdit(${t.id})" aria-label="edit">✎</button>` : ''}
+        <input class="task-time" value="${escHtml(t.time || '')}" placeholder="7:00"
+          onclick="event.stopPropagation()"
+          oninput="updateTaskField(${t.id},'time',this.value)"
+          onblur="commitTaskTime(${t.id})" />
+        <select class="task-period" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateTaskField(${t.id},'period',this.value);commitTaskTime(${t.id})">
+          <option value="" ${!t.period ? 'selected' : ''}>--</option>
+          <option value="AM" ${t.period === 'AM' ? 'selected' : ''}>AM</option>
+          <option value="PM" ${t.period === 'PM' ? 'selected' : ''}>PM</option>
+        </select>
+        <input class="task-text-input" value="${escHtml(t.text || '')}" placeholder="task"
+          onclick="event.stopPropagation()"
+          oninput="updateTaskField(${t.id},'text',this.value)" />
         <button class="remove-btn" onclick="event.stopPropagation(); removeTask(${t.id})" aria-label="remove">×</button>
-      </div>`;
-    }).join('');
-    // focus edit input if any
-    const editing = state.tasks.find(t => t.editing);
-    if (editing) {
-      const inp = document.getElementById('tedit-' + editing.id);
-      if (inp) { inp.focus(); inp.select(); }
-    }
+      </div>`
+    ).join('');
   }
 
-  // reward pills
-  const rlist = document.getElementById('reward-list');
-  if (state.rewards.length === 0) {
-    rlist.innerHTML = '<div class="empty">no rewards yet — add what motivates you</div>';
-  } else {
-    rlist.innerHTML = state.rewards.map((r, i) => {
-      const text = r.text || r;
-      return `<div class="pill">${escHtml(text)}<button onclick="removeReward(${i})" aria-label="remove reward">×</button></div>`;
-    }).join('');
-  }
+  const done = state.tasks.filter(t => t.done).length;
+  const total = state.tasks.length;
+  document.getElementById('progress-fill').style.width = total ? (done / total * 100) + '%' : '0%';
+  document.getElementById('progress-num').textContent = `${done}/${total}`;
 }
 
 function escHtml(s) {
@@ -1956,6 +2001,108 @@ function updateTimerDisplay() {
   if (timerMode === 'countdown' && timerRemaining > 0) document.getElementById('timer-display').classList.remove('warning');
 }
 
+// ── Routine Dial Timer (Tasks tab) ─────────────────────
+let dialTotalSeconds = 0;
+let dialSecondsLeft = 0;
+let dialRunning = false;
+let dialIntervalId = null;
+let dialDragging = false;
+
+function dialMinutesFromPct(pct) { return Math.round(pct / 100 * 60); }
+
+function setDialFromMinutes(min, persist) {
+  const face = document.getElementById('dialFace');
+  const pct = (min / 60) * 100;
+  face.style.setProperty('--pct', pct);
+  dialTotalSeconds = min * 60;
+  dialSecondsLeft = dialTotalSeconds;
+  updateDialLcd();
+  if (persist) { state.dialMinutes = min; save(); }
+}
+
+function updateDialLcd() {
+  const m = Math.floor(dialSecondsLeft / 60).toString().padStart(2, '0');
+  const s = Math.floor(dialSecondsLeft % 60).toString().padStart(2, '0');
+  document.getElementById('dialLcd').textContent = `${m}:${s}`;
+}
+
+function dialAngleFromEvent(evt) {
+  const face = document.getElementById('dialFace');
+  const rect = face.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const x = (evt.touches ? evt.touches[0].clientX : evt.clientX) - cx;
+  const y = (evt.touches ? evt.touches[0].clientY : evt.clientY) - cy;
+  let deg = Math.atan2(y, x) * 180 / Math.PI + 90;
+  if (deg < 0) deg += 360;
+  return deg;
+}
+
+function dialStartDrag(e) {
+  if (dialRunning) return;
+  dialDragging = true;
+  dialHandleDrag(e);
+}
+function dialHandleDrag(e) {
+  if (!dialDragging) return;
+  e.preventDefault();
+  const deg = dialAngleFromEvent(e);
+  const pct = (deg / 360) * 100;
+  setDialFromMinutes(dialMinutesFromPct(pct), false);
+}
+function dialEndDrag() {
+  if (!dialDragging) return;
+  dialDragging = false;
+  state.dialMinutes = Math.round(dialTotalSeconds / 60);
+  save();
+}
+
+function toggleDialTimer() {
+  const btn = document.getElementById('dialStartBtn');
+  if (dialRunning) {
+    dialRunning = false;
+    clearInterval(dialIntervalId);
+    btn.textContent = 'start';
+    return;
+  }
+  if (dialSecondsLeft <= 0) return;
+  dialRunning = true;
+  btn.textContent = 'pause';
+  dialIntervalId = setInterval(() => {
+    dialSecondsLeft = Math.max(0, dialSecondsLeft - 1);
+    const pct = (dialSecondsLeft / dialTotalSeconds) * 100 || 0;
+    document.getElementById('dialFace').style.setProperty('--pct', pct);
+    updateDialLcd();
+    if (dialSecondsLeft === 0) {
+      clearInterval(dialIntervalId);
+      dialRunning = false;
+      btn.textContent = 'start';
+      playTimerChime();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification("time's up!", { body: state.routineName || 'routine timer' });
+      }
+    }
+  }, 1000);
+}
+
+function resetDialTimer() {
+  dialRunning = false;
+  clearInterval(dialIntervalId);
+  document.getElementById('dialStartBtn').textContent = 'start';
+  setDialFromMinutes(state.dialMinutes || 15, false);
+}
+
+function initDialTimer() {
+  const wrap = document.getElementById('dialWrap');
+  wrap.addEventListener('mousedown', dialStartDrag);
+  window.addEventListener('mousemove', dialHandleDrag);
+  window.addEventListener('mouseup', dialEndDrag);
+  wrap.addEventListener('touchstart', dialStartDrag, { passive: false });
+  window.addEventListener('touchmove', dialHandleDrag, { passive: false });
+  window.addEventListener('touchend', dialEndDrag);
+  setDialFromMinutes(state.dialMinutes || 15, false);
+}
+
 function openTimer(taskId) {
   timerTaskId = taskId;
   const task = state.tasks.find(t => t.id === taskId) || (state.extraTasks || []).find(t => t.id === taskId);
@@ -2019,20 +2166,6 @@ function initDriveAuth() {
   client.requestAccessToken();
 }
 
-function handleAuthExpired() {
-  // token is dead — don't misread this as "no file exists"; force a real re-login
-  driveToken = null;
-  driveFileId = null;
-  localStorage.removeItem('onemore_drive_token');
-  clearTimeout(syncTimeout);
-  setSyncStatus('error', 'session expired');
-  document.getElementById('mainApp').style.display = 'none';
-  const gate = document.getElementById('signinGate');
-  gate.classList.remove('hidden');
-  const err = document.getElementById('signinError');
-  if (err) { err.textContent = 'Your session expired — please sign in again.'; err.classList.add('show'); }
-}
-
 async function syncFromDrive() {
   try {
     // find existing file
@@ -2040,7 +2173,6 @@ async function syncFromDrive() {
       `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'&fields=files(id,name)`,
       { headers: { Authorization: `Bearer ${driveToken}` } }
     );
-    if (search.status === 401) { handleAuthExpired(); return; }
     const result = await search.json();
     if (result.files && result.files.length > 0) {
       driveFileId = result.files[0].id;
@@ -2049,97 +2181,73 @@ async function syncFromDrive() {
         `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
         { headers: { Authorization: `Bearer ${driveToken}` } }
       );
-      if (fileResp.status === 401) { handleAuthExpired(); return; }
       const driveData = await fileResp.json();
       if (driveData && driveData.tasks) {
-        const driveIsNewer = (driveData.lastModified || 0) > (state.lastModified || 0);
-        if (driveIsNewer) {
-          // Drive really is newer — safe to load it over local
-          state = { ...state, ...driveData };
-          if (!state.clarityEvents) state.clarityEvents = [];
-          if (!state.experiments) state.experiments = [];
-          if (!state.literatureNotes) state.literatureNotes = [];
-          if (!state.extraTasks) state.extraTasks = [];
-          if (!state.experimentBuckets) state.experimentBuckets = [];
-          delete state.constraints;
-          delete state.constraintArchive;
-          delete state.clarityWithin;
-          delete state.clarityOutside;
-          delete state.clarityOutsideArchive;
-          _save(); render(); renderClarity();
-          setSyncStatus('ok', 'synced');
-        } else {
-          // local copy is newer (or equal) than what's on Drive — push local up instead of overwriting it
-          await doDriveSave();
-        }
-      } else {
-        setSyncStatus('ok', 'synced');
+        state = { ...state, ...driveData };
+        if (!state.clarityEvents) state.clarityEvents = [];
+        if (!state.experiments) state.experiments = [];
+        if (!state.literatureNotes) state.literatureNotes = [];
+        if (!state.extraTasks) state.extraTasks = [];
+        if (!state.experimentBuckets) state.experimentBuckets = [];
+        if (state.routineName === undefined) state.routineName = '';
+        if (state.routineReward === undefined) state.routineReward = '';
+        if (state.dialMinutes === undefined) state.dialMinutes = 15;
+        delete state.constraints;
+        delete state.constraintArchive;
+        delete state.clarityWithin;
+        delete state.clarityOutside;
+        delete state.clarityOutsideArchive;
+        migrateTasks();
+        _save(); render(); renderClarity();
       }
+      setSyncStatus('ok', 'synced');
     } else {
       // no file yet — create one
-      await doDriveSave();
+      setSyncStatus('saving', 'saving…');
+      await saveToDrive();
     }
   } catch(e) {
     setSyncStatus('error', 'sync failed');
   }
 }
 
-async function doDriveSave() {
+async function saveToDrive() {
   if (!driveToken) return;
-  setSyncStatus('saving', 'saving…');
-  try {
-    const body = JSON.stringify(state);
-    if (driveFileId) {
-      // update existing
-      const resp = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
-        body,
-        keepalive: true
-      });
-      if (resp.status === 401) { handleAuthExpired(); return; }
-    } else {
-      // create new
-      const meta = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] }),
-        keepalive: true
-      });
-      if (meta.status === 401) { handleAuthExpired(); return; }
-      const metaResult = await meta.json();
-      driveFileId = metaResult.id;
-      const resp2 = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
-        body,
-        keepalive: true
-      });
-      if (resp2.status === 401) { handleAuthExpired(); return; }
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    setSyncStatus('saving', 'saving…');
+    try {
+      const body = JSON.stringify(state);
+      if (driveFileId) {
+        // update existing
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+          body
+        });
+      } else {
+        // create new
+        const meta = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] })
+        });
+        const metaResult = await meta.json();
+        driveFileId = metaResult.id;
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+          body
+        });
+      }
+      setSyncStatus('ok', 'saved');
+    } catch(e) {
+      setSyncStatus('error', 'save failed');
     }
-    setSyncStatus('ok', 'saved');
-  } catch(e) {
-    setSyncStatus('error', 'save failed');
-  }
+  }, 1500); // debounce — wait 1.5s after last change before saving
 }
 
-function saveToDrive() {
-  if (!driveToken) return;
-  clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(doDriveSave, 400); // shortened debounce
-}
-
-// force any pending save through immediately if the tab is closed or backgrounded,
-// instead of losing it to the debounce timer
-function flushSaveNow() {
-  if (!driveToken) return;
-  clearTimeout(syncTimeout);
-  doDriveSave();
-}
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') flushSaveNow();
-});
-window.addEventListener('pagehide', flushSaveNow);
+// saveToDrive is called from save() above
 
 // ── Sign-in Gate ───────────────────────────────────────
 function startSignIn() {
@@ -2162,11 +2270,11 @@ function startSignIn() {
       driveToken = resp.access_token;
       localStorage.setItem('onemore_drive_token', driveToken);
       await syncFromDrive();
-      if (!driveToken) return; // syncFromDrive detected an expired/invalid token and already reset the gate
       document.getElementById('signinGate').classList.add('hidden');
       document.getElementById('mainApp').style.display = '';
       setSyncStatus('ok', 'synced');
       render(); renderClarity();
+      resetDialTimer();
     }
   });
   client.requestAccessToken({ prompt: 'consent' });
@@ -2182,7 +2290,6 @@ function signOut() {
 
 // ── Keyboard shortcuts ─────────────────────────────────
 document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
-document.getElementById('reward-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReward(); });
 document.getElementById('clarity-event-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarityEvent(); });
 document.getElementById('experiment-input').addEventListener('keydown', e => { if (e.key === 'Enter') addExperiment(); });
 document.getElementById('fleeting-input').addEventListener('keydown', e => { if (e.key === 'Enter') addFleetingNote(); });
@@ -2192,16 +2299,17 @@ document.getElementById('extra-input').addEventListener('keydown', e => { if (e.
 
 // ── Boot ───────────────────────────────────────────────
 load();
+initDialTimer();
 // Try silent token restore
 const savedToken = localStorage.getItem('onemore_drive_token');
 if (savedToken) {
   driveToken = savedToken;
   syncFromDrive().then(() => {
-    if (!driveToken) return; // expired token already handled — gate stays visible with the error message
     document.getElementById('signinGate').classList.add('hidden');
     document.getElementById('mainApp').style.display = '';
     setSyncStatus('synced', 'synced');
     render(); renderClarity();
+    resetDialTimer();
   }).catch(() => {
     driveToken = null;
     localStorage.removeItem('onemore_drive_token');
