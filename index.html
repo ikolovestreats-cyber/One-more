@@ -215,117 +215,6 @@
   @keyframes timerFlash { 0%,100%{background:transparent} 50%{background:#FEE2E2} }
   .timer-widget.done { animation: timerFlash 0.6s ease-in-out infinite; }
 
-  /* ROUTINE NAME / REWARD */
-  #tab-tasks {
-    --routine-orange: #FF6B1A;
-    --routine-orange-dark: #E65A0F;
-    --routine-track: #FFE2C7;
-    --routine-lcd-bg: #20261F;
-    --routine-lcd-fg: #7CE38B;
-  }
-  .routine-field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  .routine-field-row label {
-    font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em; color: var(--routine-orange-dark);
-    flex-shrink: 0; width: 58px;
-  }
-  .routine-field-row input {
-    flex: 1; height: 40px; padding: 0 14px;
-    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
-    background: var(--surface); border: 2px solid var(--routine-track);
-    border-radius: 12px; color: var(--text); outline: none;
-    transition: border-color 0.15s;
-  }
-  .routine-field-row input:focus { border-color: var(--routine-orange); }
-  .routine-field-row input::placeholder { color: var(--muted); }
-
-  /* ROUTINE DIAL TIMER */
-  .dial-section { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 4px 0 1.75rem; }
-  .dial-wrap { position: relative; width: 176px; height: 176px; touch-action: none; user-select: none; }
-  .dial-face {
-    width: 100%; height: 100%; border-radius: 50%;
-    background: conic-gradient(var(--routine-orange) 0deg calc(var(--pct,25) * 3.6deg), var(--routine-track) calc(var(--pct,25) * 3.6deg) 360deg);
-    border: none;
-    position: relative; cursor: grab;
-  }
-  .dial-inner {
-    position: absolute; inset: 26px; background: var(--surface); border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(26,25,22,0.1) inset;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .dial-knob {
-    width: 40px; height: 40px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #FF9A52, var(--routine-orange-dark));
-    box-shadow: 0 3px 6px rgba(0,0,0,0.25);
-  }
-  .dial-lcd {
-    background: var(--routine-lcd-bg); color: var(--routine-lcd-fg);
-    font-family: 'DM Mono', monospace; font-size: 26px; font-weight: 500;
-    letter-spacing: 0.06em; padding: 8px 20px; border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3) inset;
-  }
-  .dial-controls { display: flex; gap: 8px; }
-  .dial-controls .timer-btn {
-    font-family: 'DM Mono', monospace; font-weight: 700; font-size: 12px;
-    border: none; border-radius: 12px; padding: 9px 18px;
-    background: var(--routine-track); color: var(--routine-orange-dark);
-    text-transform: none; letter-spacing: 0.02em;
-  }
-  .dial-controls .timer-btn:hover { background: #FFD4A8; color: var(--routine-orange-dark); }
-  .dial-controls .timer-btn.start { background: var(--routine-orange); color: #fff; }
-  .dial-controls .timer-btn.start:hover { background: var(--routine-orange-dark); color: #fff; }
-  .dial-hint { font-size: 11px; color: var(--muted); font-weight: 300; }
-
-  /* SOUND TOGGLE */
-  .dial-sound-row { display: flex; align-items: center; gap: 8px; }
-  .dial-sound-row span { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; color: var(--muted); }
-  .switch-toggle {
-    position: relative; width: 44px; height: 24px; border-radius: 14px;
-    background: var(--routine-track); border: none; cursor: pointer; padding: 0; flex-shrink: 0;
-  }
-  .switch-toggle.on { background: #DCF3E2; }
-  .switch-toggle .knob {
-    position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #FF9A52, var(--routine-orange-dark));
-    transition: transform 0.18s ease, background 0.18s ease;
-  }
-  .switch-toggle.on .knob {
-    transform: translateX(20px);
-    background: radial-gradient(circle at 35% 30%, #6FD98A, var(--success));
-  }
-  .switch-toggle .tick {
-    position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
-    font-size: 10px; color: var(--success); opacity: 0;
-  }
-  .switch-toggle.on .tick { opacity: 1; }
-
-  /* PROGRESS */
-  .progress-row { display: flex; align-items: center; gap: 10px; }
-  .progress-track { flex: 1; height: 10px; background: var(--routine-track); border-radius: 8px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--routine-orange), #FF9A52); border-radius: 8px; transition: width 0.3s ease; }
-  .progress-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); flex-shrink: 0; }
-
-  /* TASK ICON */
-  .task-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-
-  /* TASK TIME */
-  .task-time { width: 40px; flex-shrink: 0; border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); padding: 2px 0; }
-  .task-time:focus { outline: none; }
-  .task-time::placeholder { color: var(--border); }
-  .task-period {
-    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
-    width: 44px; flex-shrink: 0; border: none; background: var(--bg);
-    border-radius: 6px; padding: 3px 2px;
-  }
-  .task-period:focus { outline: 1px solid var(--routine-orange); }
-  .task-text-input {
-    flex: 1; border: none; background: transparent;
-    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); padding: 2px 0;
-  }
-  .task-text-input:focus { outline: none; }
-  .task-item.done .task-text-input { text-decoration: line-through; color: var(--muted); }
-
-
   /* ADD ROW */
   .add-row { display: flex; gap: 6px; margin-top: 8px; }
   .add-row input {
@@ -659,26 +548,6 @@
 <div class="app" id="mainApp" style="display:none">
 
   <!-- confirm reset overlay -->
-  <div class="confirm-overlay" id="confirm-overlay">
-    <div class="confirm-card">
-      <p>Start fresh?</p>
-      <small>This clears all tasks, rewards, and counters.</small>
-      <div class="confirm-actions">
-        <button class="btn-cancel" onclick="closeConfirm()">cancel</button>
-        <button class="btn-confirm" onclick="confirmReset()">reset</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- reward overlay -->
-  <div class="overlay" id="overlay">
-    <div class="reveal-card">
-      <div class="reward-emoji">🎁</div>
-      <div class="reward-eyebrow">you earned it</div>
-      <div class="reward-name" id="reveal-text"></div>
-      <button class="dismiss-btn" onclick="closeReveal()">got it</button>
-    </div>
-  </div>
 
   <!-- header -->
   <div class="header">
@@ -696,7 +565,6 @@
   <!-- tab nav -->
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('clarity')">clarity</button>
-    <button class="tab-btn" onclick="switchTab('tasks')">tasks</button>
     <button class="tab-btn" onclick="switchTab('experiments')">experiments</button>
     <button class="tab-btn" onclick="switchTab('capture')">capture</button>
     <button class="tab-btn" onclick="switchTab('extra')">extra</button>
@@ -718,69 +586,6 @@
   </div>
 
   <!-- TASKS TAB -->
-  <div class="tab-panel" id="tab-tasks">
-
-  <!-- routine name -->
-  <div class="routine-field-row">
-    <label for="routine-name-input">name</label>
-    <input type="text" id="routine-name-input" placeholder="for example" oninput="updateRoutineName(this.value)" />
-  </div>
-
-  <!-- dial timer -->
-  <div class="dial-section">
-    <div class="dial-wrap" id="dialWrap">
-      <div class="dial-face" id="dialFace"><div class="dial-inner"><div class="dial-knob"></div></div></div>
-    </div>
-    <div class="dial-lcd" id="dialLcd">00:00</div>
-    <div class="dial-controls">
-      <button class="timer-btn start" id="dialStartBtn" onclick="toggleDialTimer()">start</button>
-      <button class="timer-btn" onclick="resetDialTimer()">reset</button>
-    </div>
-    <div class="dial-sound-row">
-      <span>sound</span>
-      <button class="switch-toggle on" id="dialSoundToggle" onclick="toggleDialSound()" aria-label="toggle sound">
-        <span class="tick">✓</span><span class="knob"></span>
-      </button>
-    </div>
-    <div class="dial-hint">drag the dial to set minutes</div>
-  </div>
-
-  <!-- tasks -->
-  <div class="section">
-    <div class="section-head">
-      <div class="section-label">tasks</div>
-      <button class="clear-btn" onclick="clearDone()">clear done</button>
-    </div>
-    <div class="task-list" id="task-list"></div>
-    <div class="add-row" style="margin-top:8px">
-      <input type="text" id="task-input" placeholder="add a task…" />
-      <button onclick="addTask()">add</button>
-    </div>
-  </div>
-
-  <!-- progress -->
-  <div class="section">
-    <div class="section-head"><div class="section-label">progress</div></div>
-    <div class="progress-row">
-      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-      <div class="progress-num" id="progress-num">0/0</div>
-    </div>
-  </div>
-
-  <hr class="divider" />
-
-  <!-- reward -->
-  <div class="routine-field-row" style="margin-bottom:0">
-    <label for="routine-reward-input">reward</label>
-    <input type="text" id="routine-reward-input" placeholder="what do they earn?" oninput="updateRoutineReward(this.value)" />
-  </div>
-
-  <div class="reset-row">
-    <button class="reset-btn" onclick="openConfirm()">start fresh</button>
-  </div>
-
-  </div><!-- /tab-tasks -->
-
   <!-- EXPERIMENTS TAB -->
   <div class="tab-panel" id="tab-experiments">
     <div class="add-row" style="margin-top:0;margin-bottom:18px">
@@ -877,75 +682,13 @@
 </div>
 
 <script>
-// ── Weight reward probabilities ────────────────────────
-const DROUGHT_THRESHOLD = 7;
-const DROUGHT_BOOST = 0.3 + Math.random() * 0.2;
-
-function getProb(weight) {
-  // base ranges shuffle on every session so no fixed pattern exists
-  const seed = (Date.now() % 1000) / 1000;
-  const ranges = {
-    heavy:  [0.42 + seed * 0.08,  0.68 + seed * 0.06],
-    medium: [0.18 + seed * 0.06,  0.34 + seed * 0.08],
-    light:  [0.02 + seed * 0.03,  0.09 + seed * 0.04]
-  };
-  const [lo, hi] = ranges[weight] || ranges.light;
-  return lo + Math.random() * (hi - lo);
-}
-
 let state = {
-  tasks: [],
-  rewards: [],
-  rewardMap: {},
-  doneToday: 0,
-  rewardsEarned: 0,
-  tasksSinceLast: 0,
-  lastReset: new Date().toDateString(),
   clarityEvents: [],
   experiments: [],
   literatureNotes: [],
   extraTasks: [],
-  experimentBuckets: [],
-  routineName: '',
-  routineReward: '',
-  dialMinutes: 15
+  experimentBuckets: []
 };
-
-const TASK_ICONS = ['⏰','🐾','📖','🦷','🎒','🛏️','🍽️','🧸','✏️','🚿'];
-
-// Migrate old weight-based task records ({name, weight}) to the new
-// time-based schema ({text, time, period, icon}) used by the routine tasks tab.
-function migrateTasks() {
-  state.tasks.forEach((t, i) => {
-    if (t.text === undefined) t.text = t.name || '';
-    if (t.time === undefined) t.time = '';
-    if (t.period === undefined) t.period = '';
-    if (t.icon === undefined) t.icon = TASK_ICONS[i % TASK_ICONS.length];
-  });
-}
-
-function timeToMinutes(t) {
-  if (!t.time || !t.period) return null;
-  const parts = t.time.split(':');
-  let h = parseInt(parts[0], 10);
-  let m = parts.length > 1 ? parseInt(parts[1], 10) : 0;
-  if (isNaN(h)) return null;
-  if (isNaN(m)) m = 0;
-  if (t.period === 'PM' && h !== 12) h += 12;
-  if (t.period === 'AM' && h === 12) h = 0;
-  return h * 60 + m;
-}
-
-function sortTasks() {
-  const withIndex = state.tasks.map((t, i) => ({ t, i, mins: timeToMinutes(t) }));
-  withIndex.sort((a, b) => {
-    if (a.mins === null && b.mins === null) return a.i - b.i;
-    if (a.mins === null) return 1;
-    if (b.mins === null) return -1;
-    return a.mins - b.mins;
-  });
-  state.tasks = withIndex.map(x => x.t);
-}
 
 function _save() {
   localStorage.setItem('onemore_state', JSON.stringify(state));
@@ -967,41 +710,21 @@ function load() {
       if (!state.literatureNotes) state.literatureNotes = [];
       if (!state.extraTasks) state.extraTasks = [];
       if (!state.experimentBuckets) state.experimentBuckets = [];
-      if (state.routineName === undefined) state.routineName = '';
-      if (state.routineReward === undefined) state.routineReward = '';
-      if (state.dialMinutes === undefined) state.dialMinutes = 15;
       // old schema fields no longer supported — drop them
       delete state.constraints;
       delete state.constraintArchive;
       delete state.clarityWithin;
       delete state.clarityOutside;
       delete state.clarityOutsideArchive;
-      if (state.lastReset !== new Date().toDateString()) {
-        state.doneToday = 0;
-        state.lastReset = new Date().toDateString();
-      }
-      migrateTasks();
+      delete state.tasks;
+      delete state.rewards;
+      delete state.rewardMap;
+      delete state.doneToday;
+      delete state.rewardsEarned;
+      delete state.tasksSinceLast;
+      delete state.lastReset;
     }
   } catch(e) {}
-}
-
-// ── Reward logic ───────────────────────────────────────
-function roll(weight) {
-  const base = getProb(weight);
-  const boost = state.tasksSinceLast >= DROUGHT_THRESHOLD ? DROUGHT_BOOST : 0;
-  return Math.random() < (base + boost);
-}
-
-function assignRewardToTask(taskId, weight) {
-  if (state.rewards.length === 0) return false;
-  if (!roll(weight)) return false;
-  // match reward tier to task weight — heavy task gets heavy reward
-  const matching = state.rewards.filter(r => r.weight === weight);
-  const fallback = state.rewards; // use any reward if no matching tier exists yet
-  const pool = matching.length > 0 ? matching : fallback;
-  const r = pool[Math.floor(Math.random() * pool.length)];
-  state.rewardMap[taskId] = r.text || r; // handle old string format
-  return true;
 }
 
 // ── Clarity ────────────────────────────────────────────
@@ -1076,26 +799,12 @@ function toggleClarityArchive() {
   chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
 }
 
-function promoteClarityItem(eventId, itemId) {
-  const ev = state.clarityEvents.find(e => String(e.id) === String(eventId));
-  if (!ev) return;
-  const item = ev.within.find(c => String(c.id) === String(itemId));
-  if (!item) return;
-  const taskId = Date.now() + Math.random();
-  const icon = TASK_ICONS[state.tasks.length % TASK_ICONS.length];
-  state.tasks.push({ id: taskId, text: item.text, time: '', period: '', done: false, icon });
-  ev.within = ev.within.filter(c => String(c.id) !== String(itemId));
-  save(); render(); renderClarity();
-  switchTab('tasks');
-}
-
 function clarityItemTpl(ev, cat, item) {
   if (cat === 'within') {
     return `
       <div class="clarity-item" id="ci-${item.id}">
         <div class="clarity-item-text">${escHtml(item.text)}</div>
         <div class="clarity-item-acts" id="ci-acts-${item.id}">
-          <button class="clarity-promote-btn" onclick="promoteClarityItem('${ev.id}','${item.id}')">→ task</button>
           <button class="clarity-remove-btn" onclick="removeClarityItem('${ev.id}','within','${item.id}')" aria-label="remove">×</button>
         </div>
       </div>`;
@@ -1714,75 +1423,6 @@ function renderExtra() {
     toggle.style.display = 'none';
   }
 }
-function addTask() {
-  const input = document.getElementById('task-input');
-  const val = input.value.trim();
-  if (!val) return;
-  const id = Date.now() + Math.random();
-  const icon = TASK_ICONS[state.tasks.length % TASK_ICONS.length];
-  state.tasks.push({ id, text: val, time: '', period: '', done: false, icon });
-  input.value = '';
-  save(); render();
-}
-
-function toggleTaskDone(id) {
-  const task = state.tasks.find(t => t.id === id);
-  if (!task) return;
-  task.done = !task.done;
-  save(); render();
-}
-
-function updateTaskField(id, field, value) {
-  const task = state.tasks.find(t => t.id === id);
-  if (!task) return;
-  task[field] = value;
-  save();
-}
-
-function commitTaskTime(id) {
-  sortTasks(); save(); render();
-}
-
-function removeTask(id) {
-  state.tasks = state.tasks.filter(t => t.id !== id);
-  save(); render();
-}
-
-function clearDone() {
-  state.tasks = state.tasks.filter(t => !t.done);
-  save(); render();
-}
-
-function updateRoutineName(val) {
-  state.routineName = val;
-  save();
-}
-
-function updateRoutineReward(val) {
-  state.routineReward = val;
-  save();
-}
-
-// ── Reset ──────────────────────────────────────────────
-function openConfirm() { document.getElementById('confirm-overlay').classList.add('show'); }
-function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('show'); }
-function confirmReset() {
-  state = {
-    ...state,
-    tasks: [], routineReward: '',
-    doneToday: 0, rewardsEarned: 0, tasksSinceLast: 0,
-    lastReset: new Date().toDateString()
-  };
-  save(); render(); closeConfirm();
-}
-
-// ── Reveal ─────────────────────────────────────────────
-function showReveal(reward) {
-  document.getElementById('reveal-text').textContent = reward;
-  document.getElementById('overlay').classList.add('show');
-}
-function closeReveal() { document.getElementById('overlay').classList.remove('show'); }
-
 // ── Export / Import ────────────────────────────────────
 function exportData() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -1806,9 +1446,10 @@ function importData() {
     reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (!data.tasks || !data.rewards) { showToast('⚠ invalid backup file'); return; }
+        if (!data || typeof data !== 'object') { showToast('⚠ invalid backup file'); return; }
         state = data;
-        save(); render();
+        save();
+        renderClarity(); renderExperiments(); renderLiteratureNotes(); renderExtra();
         showToast('✓ data restored');
       } catch(err) { showToast('⚠ could not read file'); }
     };
@@ -1817,67 +1458,11 @@ function importData() {
   input.click();
 }
 
-// ── Drag & Drop ────────────────────────────────────────
-let dragId = null;
-
-function dragStart(e, id) { dragId = id; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
-function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); }
-function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-function dragDrop(e, targetId) {
-  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-  if (dragId === targetId) return;
-  const fromIdx = state.tasks.findIndex(t => t.id === dragId);
-  const toIdx = state.tasks.findIndex(t => t.id === targetId);
-  if (fromIdx === -1 || toIdx === -1) return;
-  const [moved] = state.tasks.splice(fromIdx, 1);
-  state.tasks.splice(toIdx, 0, moved);
-  save(); render();
-}
-function dragEnd(e) { e.currentTarget.classList.remove('dragging'); dragId = null; }
-
 // ── Toast ──────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-// ── Render ─────────────────────────────────────────────
-function render() {
-  document.getElementById('routine-name-input').value = state.routineName || '';
-  document.getElementById('routine-reward-input').value = state.routineReward || '';
-
-  sortTasks();
-
-  const list = document.getElementById('task-list');
-  if (state.tasks.length === 0) {
-    list.innerHTML = '<div class="empty">no tasks yet — add one below</div>';
-  } else {
-    list.innerHTML = state.tasks.map(t => `
-      <div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}">
-        <span class="task-icon">${t.icon || '⏰'}</span>
-        <input class="task-time" value="${escHtml(t.time || '')}" placeholder="7:00"
-          oninput="updateTaskField(${t.id},'time',this.value)"
-          onblur="commitTaskTime(${t.id})" />
-        <select class="task-period" onchange="updateTaskField(${t.id},'period',this.value);commitTaskTime(${t.id})">
-          <option value="" ${!t.period ? 'selected' : ''}>--</option>
-          <option value="AM" ${t.period === 'AM' ? 'selected' : ''}>AM</option>
-          <option value="PM" ${t.period === 'PM' ? 'selected' : ''}>PM</option>
-        </select>
-        <input class="task-text-input" value="${escHtml(t.text || '')}" placeholder="task"
-          oninput="updateTaskField(${t.id},'text',this.value)" />
-        <button class="switch-toggle ${t.done ? 'on' : ''}" onclick="toggleTaskDone(${t.id})" aria-label="mark done">
-          <span class="tick">✓</span><span class="knob"></span>
-        </button>
-        <button class="remove-btn" onclick="removeTask(${t.id})" aria-label="remove">×</button>
-      </div>`
-    ).join('');
-  }
-
-  const done = state.tasks.filter(t => t.done).length;
-  const total = state.tasks.length;
-  document.getElementById('progress-fill').style.width = total ? (done / total * 100) + '%' : '0%';
-  document.getElementById('progress-num').textContent = `${done}/${total}`;
 }
 
 function escHtml(s) {
@@ -1907,29 +1492,6 @@ function switchTab(name) {
   if (name === 'extra') renderExtra();
 }
 
-// ── Task Editing ───────────────────────────────────────
-function startTaskEdit(id) {
-  state.tasks.forEach(t => t.editing = false);
-  const task = state.tasks.find(t => t.id === id);
-  if (task) task.editing = true;
-  render();
-}
-function saveTaskEdit(id) {
-  const task = state.tasks.find(t => t.id === id);
-  if (!task) return;
-  const inp = document.getElementById('tedit-' + id);
-  const wSel = document.getElementById('tedit-w-' + id);
-  if (inp && inp.value.trim()) task.name = inp.value.trim();
-  if (wSel) task.weight = wSel.value;
-  task.editing = false;
-  save(); render();
-}
-function cancelTaskEdit(id) {
-  const task = state.tasks.find(t => t.id === id);
-  if (task) task.editing = false;
-  render();
-}
-
 // ── Timer ──────────────────────────────────────────────
 let timerMode = 'countdown';
 let timerDuration = 5 * 60;
@@ -1940,26 +1502,13 @@ let timerInterval = null;
 let timerTaskId = null;
 let timerSoundOn = true;
 
-function syncSoundToggles() {
-  const btn = document.getElementById('timer-sound-toggle');
-  if (btn) {
-    btn.textContent = timerSoundOn ? 'on' : 'off';
-    btn.style.color = timerSoundOn ? 'var(--accent)' : 'var(--muted)';
-    btn.style.background = timerSoundOn ? 'var(--accent-light)' : 'none';
-    btn.style.borderColor = timerSoundOn ? 'var(--accent-muted)' : 'var(--border)';
-  }
-  const dialToggle = document.getElementById('dialSoundToggle');
-  if (dialToggle) dialToggle.classList.toggle('on', timerSoundOn);
-}
-
 function toggleTimerSound() {
   timerSoundOn = !timerSoundOn;
-  syncSoundToggles();
-}
-
-function toggleDialSound() {
-  timerSoundOn = !timerSoundOn;
-  syncSoundToggles();
+  const btn = document.getElementById('timer-sound-toggle');
+  btn.textContent = timerSoundOn ? 'on' : 'off';
+  btn.style.color = timerSoundOn ? 'var(--accent)' : 'var(--muted)';
+  btn.style.background = timerSoundOn ? 'var(--accent-light)' : 'none';
+  btn.style.borderColor = timerSoundOn ? 'var(--accent-muted)' : 'var(--border)';
 }
 
 function playTimerChime() {
@@ -2071,111 +1620,9 @@ function updateTimerDisplay() {
   if (timerMode === 'countdown' && timerRemaining > 0) document.getElementById('timer-display').classList.remove('warning');
 }
 
-// ── Routine Dial Timer (Tasks tab) ─────────────────────
-let dialTotalSeconds = 0;
-let dialSecondsLeft = 0;
-let dialRunning = false;
-let dialIntervalId = null;
-let dialDragging = false;
-
-function dialMinutesFromPct(pct) { return Math.round(pct / 100 * 60); }
-
-function setDialFromMinutes(min, persist) {
-  const face = document.getElementById('dialFace');
-  const pct = (min / 60) * 100;
-  face.style.setProperty('--pct', pct);
-  dialTotalSeconds = min * 60;
-  dialSecondsLeft = dialTotalSeconds;
-  updateDialLcd();
-  if (persist) { state.dialMinutes = min; save(); }
-}
-
-function updateDialLcd() {
-  const m = Math.floor(dialSecondsLeft / 60).toString().padStart(2, '0');
-  const s = Math.floor(dialSecondsLeft % 60).toString().padStart(2, '0');
-  document.getElementById('dialLcd').textContent = `${m}:${s}`;
-}
-
-function dialAngleFromEvent(evt) {
-  const face = document.getElementById('dialFace');
-  const rect = face.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const x = (evt.touches ? evt.touches[0].clientX : evt.clientX) - cx;
-  const y = (evt.touches ? evt.touches[0].clientY : evt.clientY) - cy;
-  let deg = Math.atan2(y, x) * 180 / Math.PI + 90;
-  if (deg < 0) deg += 360;
-  return deg;
-}
-
-function dialStartDrag(e) {
-  if (dialRunning) return;
-  dialDragging = true;
-  dialHandleDrag(e);
-}
-function dialHandleDrag(e) {
-  if (!dialDragging) return;
-  e.preventDefault();
-  const deg = dialAngleFromEvent(e);
-  const pct = (deg / 360) * 100;
-  setDialFromMinutes(dialMinutesFromPct(pct), false);
-}
-function dialEndDrag() {
-  if (!dialDragging) return;
-  dialDragging = false;
-  state.dialMinutes = Math.round(dialTotalSeconds / 60);
-  save();
-}
-
-function toggleDialTimer() {
-  const btn = document.getElementById('dialStartBtn');
-  if (dialRunning) {
-    dialRunning = false;
-    clearInterval(dialIntervalId);
-    btn.textContent = 'start';
-    return;
-  }
-  if (dialSecondsLeft <= 0) return;
-  dialRunning = true;
-  btn.textContent = 'pause';
-  dialIntervalId = setInterval(() => {
-    dialSecondsLeft = Math.max(0, dialSecondsLeft - 1);
-    const pct = (dialSecondsLeft / dialTotalSeconds) * 100 || 0;
-    document.getElementById('dialFace').style.setProperty('--pct', pct);
-    updateDialLcd();
-    if (dialSecondsLeft === 0) {
-      clearInterval(dialIntervalId);
-      dialRunning = false;
-      btn.textContent = 'start';
-      playTimerChime();
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification("time's up!", { body: state.routineName || 'routine timer' });
-      }
-    }
-  }, 1000);
-}
-
-function resetDialTimer() {
-  dialRunning = false;
-  clearInterval(dialIntervalId);
-  document.getElementById('dialStartBtn').textContent = 'start';
-  setDialFromMinutes(state.dialMinutes || 15, false);
-}
-
-function initDialTimer() {
-  const wrap = document.getElementById('dialWrap');
-  wrap.addEventListener('mousedown', dialStartDrag);
-  window.addEventListener('mousemove', dialHandleDrag);
-  window.addEventListener('mouseup', dialEndDrag);
-  wrap.addEventListener('touchstart', dialStartDrag, { passive: false });
-  window.addEventListener('touchmove', dialHandleDrag, { passive: false });
-  window.addEventListener('touchend', dialEndDrag);
-  setDialFromMinutes(state.dialMinutes || 15, false);
-}
-
 function openTimer(taskId) {
   timerTaskId = taskId;
-  const task = state.tasks.find(t => t.id === taskId) || (state.extraTasks || []).find(t => t.id === taskId);
+  const task = (state.extraTasks || []).find(t => t.id === taskId);
   document.getElementById('timer-task-name').textContent = task ? task.name : 'no task selected';
   document.getElementById('timer-widget').classList.add('open');
   if ('Notification' in window && Notification.permission === 'default') {
@@ -2259,16 +1706,19 @@ async function syncFromDrive() {
         if (!state.literatureNotes) state.literatureNotes = [];
         if (!state.extraTasks) state.extraTasks = [];
         if (!state.experimentBuckets) state.experimentBuckets = [];
-        if (state.routineName === undefined) state.routineName = '';
-        if (state.routineReward === undefined) state.routineReward = '';
-        if (state.dialMinutes === undefined) state.dialMinutes = 15;
         delete state.constraints;
         delete state.constraintArchive;
         delete state.clarityWithin;
         delete state.clarityOutside;
         delete state.clarityOutsideArchive;
-        migrateTasks();
-        _save(); render(); renderClarity();
+        delete state.tasks;
+        delete state.rewards;
+        delete state.rewardMap;
+        delete state.doneToday;
+        delete state.rewardsEarned;
+        delete state.tasksSinceLast;
+        delete state.lastReset;
+        _save(); renderClarity();
       }
       setSyncStatus('ok', 'synced');
     } else {
@@ -2343,8 +1793,7 @@ function startSignIn() {
       document.getElementById('signinGate').classList.add('hidden');
       document.getElementById('mainApp').style.display = '';
       setSyncStatus('ok', 'synced');
-      render(); renderClarity();
-      resetDialTimer();
+      renderClarity();
     }
   });
   client.requestAccessToken({ prompt: 'consent' });
@@ -2359,7 +1808,6 @@ function signOut() {
 }
 
 // ── Keyboard shortcuts ─────────────────────────────────
-document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 document.getElementById('clarity-event-input').addEventListener('keydown', e => { if (e.key === 'Enter') addClarityEvent(); });
 document.getElementById('experiment-input').addEventListener('keydown', e => { if (e.key === 'Enter') addExperiment(); });
 document.getElementById('fleeting-input').addEventListener('keydown', e => { if (e.key === 'Enter') addFleetingNote(); });
@@ -2369,7 +1817,6 @@ document.getElementById('extra-input').addEventListener('keydown', e => { if (e.
 
 // ── Boot ───────────────────────────────────────────────
 load();
-initDialTimer();
 // Try silent token restore
 const savedToken = localStorage.getItem('onemore_drive_token');
 if (savedToken) {
@@ -2378,20 +1825,13 @@ if (savedToken) {
     document.getElementById('signinGate').classList.add('hidden');
     document.getElementById('mainApp').style.display = '';
     setSyncStatus('synced', 'synced');
-    render(); renderClarity();
-    resetDialTimer();
+    renderClarity();
   }).catch(() => {
     driveToken = null;
     localStorage.removeItem('onemore_drive_token');
     // gate stays visible
   });
 }
-// no button pre-selected
-currentRewardWeight = null;
-['light','medium','heavy'].forEach(wt => {
-  const btn = document.getElementById('rwbtn-'+wt);
-  if (btn) btn.style.cssText = `flex:1;height:32px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:none;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);cursor:pointer;letter-spacing:.08em;text-transform:uppercase;font-weight:400;`;
-});
 </script>
 </body>
 </html>
